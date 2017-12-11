@@ -1,0 +1,111 @@
+[
+    {
+      "name": "os_reference",
+      "label": "OS Reference",
+      "description": "Operating System",
+      "default": "UBUNTU_16_64",
+      "hidden": false,
+      "immutable": false,
+      "required": true,
+      "secured": false,
+      "type": "string",
+      "options": [
+        {
+          "value": "UBUNTU_16_64",
+          "label": "Ubuntu 16.04"
+        },
+        {
+            "value": "REDHAT_7_64",
+            "label": "Redhat 7.4"
+        }
+      ]
+    },
+    {
+      "name": "ssh_key_name",
+      "label": "SSH Key Name",
+      "description": "SSH Key Name in Softlayer",
+      "default": "sl-key",
+      "hidden": false,
+      "immutable": false,
+      "required": true,
+      "secured": false,
+      "type": "string"
+    },
+    {
+      "name": "ssh_public_key",
+      "label": "SSH Public Key",
+      "description": "SSH Public Key",
+      "hidden": false,
+      "immutable": false,
+      "required": true,
+      "secured": true,
+      "type": "string"
+    },
+    {
+      "name": "ssh_user",
+      "label": "SSH Login Username",
+      "description": "User to execute commands in linux instances",
+      "default": "root",
+      "hidden": false,
+      "immutable": false,
+      "required": true,
+      "secured": false,
+      "type": "string"
+    },
+    {
+      "name": "icpadmin_password",
+      "label": "ICP admin password",
+      "description": "Password for ICP admin",
+      "default": "admin",
+      "hidden": false,
+      "immutable": false,
+      "required": true,
+      "secured": true,
+      "type": "string"
+    },
+    {
+      "name": "master",
+      "label": "Master Node",
+      "description": "Master Node Informations",
+      "default": {"nodes": "1", "name": "master", "cpu_cores": "4", "disk_size":"25,75","local_disk":false,"memory":"8192","network_speed":"100","private_network_only":false,"hourly_billing":true },
+      "hidden": false,
+      "immutable": false,
+      "required": true,
+      "secured": false,
+      "type": "map"
+    },
+    {
+        "name": "proxy",
+        "label": "Proxy Node",
+        "description": "Proxy Node Informations",
+        "default": {"nodes": "1", "name": "proxy", "cpu_cores": "2", "disk_size":"25,75","local_disk":false,"memory":"4096","network_speed":"100","private_network_only":false,"hourly_billing":true },
+        "hidden": false,
+        "immutable": false,
+        "required": true,
+        "secured": false,
+        "type": "map"
+    },
+    {
+        "name": "management",
+        "label": "Management Node",
+        "description": "Management Node Informations",
+        "default": {"nodes": "1", "name": "management", "cpu_cores": "4", "disk_size":"25,75","local_disk":false,"memory":"8192","network_speed":"100","private_network_only":false,"hourly_billing":true },
+        "hidden": false,
+        "immutable": false,
+        "required": true,
+        "secured": false,
+        "type": "map"
+    },
+    {
+        "name": "worker",
+        "label": "Worker Node",
+        "description": "Worker Node Informations",
+        "default": {"nodes": "3", "name": "worker", "cpu_cores": "2", "disk_size":"25,75","local_disk":false,"memory":"4096","network_speed":"100","private_network_only":false,"hourly_billing":true },
+        "hidden": false,
+        "immutable": false,
+        "required": true,
+        "secured": false,
+        "type": "map"
+    }
+  ]
+  
