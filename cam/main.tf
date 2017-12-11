@@ -23,7 +23,6 @@ resource "ibm_compute_vm_instance" "master" {
   network_speed        = "${var.master["network_speed"]}"
   hourly_billing       = "${var.master["hourly_billing"]}"
   private_network_only = "${var.master["private_network_only"]}"
-  user_metadata        = "#!/bin/bash\nsed -i \"s/^PasswordAuthentication yes$/PasswordAuthentication no/\" /etc/ssh/sshd_config && systemctl restart sshd"
   ssh_key_ids = ["${ibm_compute_ssh_key.cam_public_key.id}", "${ibm_compute_ssh_key.temp_public_key.id}"]
   post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/master/scripts/createfs_master.sh"
 }
@@ -41,7 +40,6 @@ resource "ibm_compute_vm_instance" "proxy" {
   network_speed        = "${var.proxy["network_speed"]}"
   hourly_billing       = "${var.proxy["hourly_billing"]}"
   private_network_only = "${var.proxy["private_network_only"]}"
-  user_metadata        = "#!/bin/bash\nsed -i \"s/^PasswordAuthentication yes$/PasswordAuthentication no/\" /etc/ssh/sshd_config && systemctl restart sshd"
   ssh_key_ids = ["${ibm_compute_ssh_key.cam_public_key.id}", "${ibm_compute_ssh_key.temp_public_key.id}"]
   post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/proxy/scripts/createfs_proxy_worker.sh"
 }
@@ -59,7 +57,6 @@ resource "ibm_compute_vm_instance" "management" {
   network_speed        = "${var.management["network_speed"]}"
   hourly_billing       = "${var.management["hourly_billing"]}"
   private_network_only = "${var.management["private_network_only"]}"
-  user_metadata        = "#!/bin/bash\nsed -i \"s/^PasswordAuthentication yes$/PasswordAuthentication no/\" /etc/ssh/sshd_config && systemctl restart sshd"
   ssh_key_ids = ["${ibm_compute_ssh_key.cam_public_key.id}", "${ibm_compute_ssh_key.temp_public_key.id}"]
   post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/management/scripts/createfs_management.sh"
 }
@@ -77,7 +74,6 @@ resource "ibm_compute_vm_instance" "worker" {
   network_speed        = "${var.worker["network_speed"]}"
   hourly_billing       = "${var.worker["hourly_billing"]}"
   private_network_only = "${var.worker["private_network_only"]}"
-  user_metadata        = "#!/bin/bash\nsed -i \"s/^PasswordAuthentication yes$/PasswordAuthentication no/\" /etc/ssh/sshd_config && systemctl restart sshd"
   ssh_key_ids = ["${ibm_compute_ssh_key.cam_public_key.id}", "${ibm_compute_ssh_key.temp_public_key.id}"]
   post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/worker/scripts/createfs_proxy_worker.sh"
 }
