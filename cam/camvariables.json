@@ -1,5 +1,74 @@
 [
-    {
+  {
+    "name": "datacenter",
+    "label": "Data Center",
+    "description": "Softlaer Data Center",
+    "default": "dal13",
+    "hidden": false,
+    "immutable": false,
+    "required": true,
+    "secured": false,
+    "type": "string",
+    "options": [
+      {
+        "value": "dal01",
+        "label": "US Dallas 01"
+      },
+      {
+        "value": "dal02",
+        "label": "US Dallas 02"
+      },    
+      {
+        "value": "dal05",
+        "label": "US Dallas 05"
+      },
+      {
+        "value": "dal06",
+        "label": "US Dallas 06"
+      },
+      {
+        "value": "dal07",
+        "label": "US Dallas 07"
+      },
+      {
+        "value": "dal09",
+        "label": "US Dallas 09"
+      },
+      {
+        "value": "dal10",
+        "label": "US Dallas 10"
+      },
+      {
+        "value": "dal12",
+        "label": "US Dallas 12"
+      },                                              
+      {
+        "value": "dal13",
+        "label": "US Dallas 13"
+      },
+      {
+        "value": "lon02",
+        "label": "UK London 02"
+      },
+      {
+        "value": "lon04",
+        "label": "UK London 04"
+      },
+      {
+        "value": "lon06",
+        "label": "UK London 06"
+      },
+      {
+          "value": "syd01",
+          "label": "AU Sydney 01"
+      },      
+      {
+          "value": "syd04",
+          "label": "AU Sydney 04"
+      }           
+    ]
+  },  
+  {
       "name": "os_reference",
       "label": "OS Reference",
       "description": "Operating System",

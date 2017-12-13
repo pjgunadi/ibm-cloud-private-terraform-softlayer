@@ -19,7 +19,7 @@ variable "icp_version" {
 }
 variable datacenter {
     description = "Softlayer Data Center code"
-    default = "sgn01"
+    default = "dal13"
 }
 variable "domain" {
     description = "Instance Domain"
