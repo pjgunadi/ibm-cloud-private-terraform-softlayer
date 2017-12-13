@@ -1,3 +1,5 @@
+provider "ibm" {
+}
 resource "ibm_compute_ssh_key" "cam_public_key" {
   label      = "${var.ssh_key_name}"
   public_key = "${var.ssh_public_key}"
@@ -18,7 +20,7 @@ resource "ibm_compute_vm_instance" "master" {
   os_reference_code    = "${var.os_reference}"
   cores                = "${var.master["cpu_cores"]}"
   memory               = "${var.master["memory"]}"
-  disks                = ["${split(",",var.master["disk_size"])}"]
+  disks                = ["${split(" ",var.master["disk_size"])}"]
   local_disk           = "${var.master["local_disk"]}"
   network_speed        = "${var.master["network_speed"]}"
   hourly_billing       = "${var.master["hourly_billing"]}"
@@ -35,7 +37,7 @@ resource "ibm_compute_vm_instance" "proxy" {
   os_reference_code    = "${var.os_reference}"
   cores                = "${var.proxy["cpu_cores"]}"
   memory               = "${var.proxy["memory"]}"
-  disks                = ["${split(",",var.proxy["disk_size"])}"]
+  disks                = ["${split(" ",var.proxy["disk_size"])}"]
   local_disk           = "${var.proxy["local_disk"]}"
   network_speed        = "${var.proxy["network_speed"]}"
   hourly_billing       = "${var.proxy["hourly_billing"]}"
@@ -52,7 +54,7 @@ resource "ibm_compute_vm_instance" "management" {
   os_reference_code    = "${var.os_reference}"
   cores                = "${var.management["cpu_cores"]}"
   memory               = "${var.management["memory"]}"
-  disks                = ["${split(",",var.management["disk_size"])}"]
+  disks                = ["${split(" ",var.management["disk_size"])}"]
   local_disk           = "${var.management["local_disk"]}"
   network_speed        = "${var.management["network_speed"]}"
   hourly_billing       = "${var.management["hourly_billing"]}"
@@ -69,7 +71,7 @@ resource "ibm_compute_vm_instance" "worker" {
   os_reference_code    = "${var.os_reference}"
   cores                = "${var.worker["cpu_cores"]}"
   memory               = "${var.worker["memory"]}"
-  disks                = ["${split(",",var.worker["disk_size"])}"]
+  disks                = ["${split(" ",var.worker["disk_size"])}"]
   local_disk           = "${var.worker["local_disk"]}"
   network_speed        = "${var.worker["network_speed"]}"
   hourly_billing       = "${var.worker["hourly_billing"]}"

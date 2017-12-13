@@ -39,7 +39,7 @@ variable "master" {
     nodes       = "1"
     name        = "master"
     cpu_cores   = "4"
-    disk_size   = "25,75" // GB
+    disk_size   = "25 75" // GB
     local_disk  = false
     memory      = "8192"
     network_speed = "100"
@@ -53,7 +53,7 @@ variable "proxy" {
     nodes       = "1"
     name        = "proxy"
     cpu_cores   = "2"
-    disk_size   = "25,75" // GB
+    disk_size   = "25 75" // GB
     local_disk  = false
     memory      = "4096"
     network_speed = "100"
@@ -67,7 +67,7 @@ variable "management" {
     nodes       = "1"
     name        = "management"
     cpu_cores   = "4"
-    disk_size   = "25,75" // GB
+    disk_size   = "25 75" // GB
     local_disk  = false
     memory      = "8192"
     network_speed = "100"
@@ -81,7 +81,7 @@ variable "worker" {
     nodes       = "3"
     name        = "worker"
     cpu_cores   = "2"
-    disk_size   = "25,75" // GB
+    disk_size   = "25 75" // GB
     local_disk  = false
     memory      = "4096"
     network_speed = "100"
