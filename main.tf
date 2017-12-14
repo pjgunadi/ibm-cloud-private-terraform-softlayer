@@ -46,7 +46,7 @@ resource "ibm_compute_vm_instance" "proxy" {
   hourly_billing       = "${var.proxy["hourly_billing"]}"
   private_network_only = "${var.proxy["private_network_only"]}"
   ssh_key_ids = ["${ibm_compute_ssh_key.cam_public_key.id}", "${ibm_compute_ssh_key.temp_public_key.id}"]
-  post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/proxy/scripts/createfs_proxy_worker.sh"
+  post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/master/scripts/createfs_proxy_worker.sh"
 }
 # Create Management Node
 resource "ibm_compute_vm_instance" "management" {
@@ -63,7 +63,7 @@ resource "ibm_compute_vm_instance" "management" {
   hourly_billing       = "${var.management["hourly_billing"]}"
   private_network_only = "${var.management["private_network_only"]}"
   ssh_key_ids = ["${ibm_compute_ssh_key.cam_public_key.id}", "${ibm_compute_ssh_key.temp_public_key.id}"]
-  post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/management/scripts/createfs_management.sh"
+  post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/master/scripts/createfs_management.sh"
 }
 # Create Worker Node
 resource "ibm_compute_vm_instance" "worker" {
@@ -80,7 +80,7 @@ resource "ibm_compute_vm_instance" "worker" {
   hourly_billing       = "${var.worker["hourly_billing"]}"
   private_network_only = "${var.worker["private_network_only"]}"
   ssh_key_ids = ["${ibm_compute_ssh_key.cam_public_key.id}", "${ibm_compute_ssh_key.temp_public_key.id}"]
-  post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/worker/scripts/createfs_proxy_worker.sh"
+  post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/master/scripts/createfs_proxy_worker.sh"
 }
 
 module "icpprovision" {
