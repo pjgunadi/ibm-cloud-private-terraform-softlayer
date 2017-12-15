@@ -110,6 +110,7 @@ module "icpprovision" {
     "default_admin_password"    = "${var.icpadmin_password}"
     "calico_ipip_enabled"       = "true"
     "cluster_access_ip"         = "${element(ibm_compute_vm_instance.master.*.ipv4_address, 0)}"
+    "proxy_access_ip"           = "${element(ibm_compute_vm_instance.proxy.*.ipv4_address, 0)}"
   }
 
   generate_key = true
