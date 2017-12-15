@@ -133,6 +133,28 @@
       "type": "string"
     },
     {
+      "name": "instance_prefix",
+      "label": "Hostname Prefix",
+      "description": "Type prefix to hostname",
+      "default": "icp",
+      "hidden": false,
+      "immutable": false,
+      "required": true,
+      "secured": false,
+      "type": "string"
+    },
+    {
+      "name": "domain",
+      "label": "Domain",
+      "description": "ICP Cluster domain name",
+      "default": "icp.demo",
+      "hidden": false,
+      "immutable": false,
+      "required": true,
+      "secured": false,
+      "type": "string"
+    },    
+    {
       "name": "master",
       "label": "Master Node",
       "description": "Master Node Informations",
