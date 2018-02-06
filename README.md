@@ -34,8 +34,8 @@ terraform plan
 terraform apply
 ```
 ## Add/Remove Worker Nodes
-1. Update existing deployed terraform variable e.g. `terraform.tfvars`
-...Increase/decrease the `nodes` under the `worker` map variable. Example:
+1. Edit existing deployed terraform variable e.g. `terraform.tfvars`
+2. Increase/decrease the `nodes` under the `worker` map variable. Example:
 ```
 worker = {
     nodes       = "4"
