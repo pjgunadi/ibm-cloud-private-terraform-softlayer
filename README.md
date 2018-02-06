@@ -33,6 +33,27 @@ terraform init
 terraform plan
 terraform apply
 ```
+## Add/Remove Worker Nodes
+1. Update existing deployed terraform variable e.g. `terraform.tfvars`
+...Increase/decrease the `nodes` under the `worker` map variable. Example:
+```
+worker = {
+    nodes       = "4"
+    name        = "worker"
+    cpu_cores   = "2"
+    disk_size   = "25 75" // GB
+    local_disk  = false
+    memory      = "4096"
+    network_speed = "100"
+    private_network_only = false
+    hourly_billing = true
+}
+```
+2. Re-apply terraform template:
+```
+terraform plan
+terraform apply -auto-approve
+```
 
 ## Deployment step from IBM Cloud Automation Manager (CAM)
 1. Login to CAM
