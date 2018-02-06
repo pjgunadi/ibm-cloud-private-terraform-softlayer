@@ -26,8 +26,9 @@ This terraform template perform the following tasks:
 ## Deployment step from Terraform CLI
 1. Clone this repository: `git clone https://github.com/pjgunadi/ibm-cloud-private-terraform-softlayer.git`
 2. [Download terraform](https://www.terraform.io/) if you don't have one
-3. Create terraform variable file with your input value e.g. `terraform.tfvars`
-4. Apply the template
+3. [Download and apply IBM terraform plugin](https://github.com/IBM-Cloud/terraform-provider-ibm/releases)
+4. Create terraform variable file with your input value e.g. `terraform.tfvars`
+5. Apply the template
 ```
 terraform init
 terraform plan
