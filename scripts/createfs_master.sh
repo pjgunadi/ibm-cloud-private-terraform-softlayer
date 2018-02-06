@@ -7,9 +7,10 @@ vgcreate icp-vg /dev/xvdc
 
 #Create Logical Volumes
 lvcreate -L 10G -n kubelet-lv icp-vg
-lvcreate -L 40G -n docker-lv icp-vg
-lvcreate -L 2G -n etcd-lv icp-vg
-lvcreate -L 10G -n registry-lv icp-vg
+lvcreate -L 4G -n etcd-lv icp-vg
+lvcreate -L 15G -n registry-lv icp-vg
+lvcreate -l 100%FREE -n docker-lv icp-vg
+#lvcreate -L 70G -n docker-lv icp-vg
 #lvcreate -l 100%FREE -n management-lv icp-vg
 
 #Create Filesystems
