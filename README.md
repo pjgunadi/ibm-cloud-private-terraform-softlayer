@@ -13,20 +13,25 @@ This terraform template perform the following tasks:
 | ------------- | -------------- | ------------ |
 | ibm_sl_username    | Softlayer Username  | xxxxxxxxxxxx |
 | ibm_sl_api_key    | Softlayer API Key | xxxxxxxxxxxx |
-| datacenter        | Softlayer Datacenter Code     | sgn01 |
+| datacenter        | Softlayer Datacenter Code     | sng01 |
 | os_reference      | Softlayer OS Reference Code. Choose only Ubuntu or RHEL Image | UBUNTU_16_64 (ubuntu), REDHAT_7_64 (rhel) |
+| instance_prefix | VM name prefix | icp |
+| domain | Operating System Domain | icp.demo |
 | ssh_key_name | Public key label to be added in Softlayer | sl-key |
-| ssh_public_key | Your public key string | sha-rsa AAAA.... |
 | ssh_user | Login user to ICP instances | root |
+| icp_version | ICP Version and Flavor to install | 2.1.0.1 |
+| cluster_name | ICP Cluster name | mycluster |
+| install_gluster | Install GlusterFS Flag | true |
 | master | Master nodes information | *see default values in variables.tf* |
 | proxy | Proxy node information | *see default values in variables.tf* |
-| worker | Worker node information | *see default values in variables.tf* |
 | management | Management node information | *see default values in variables.tf* |
+| worker | Worker node information | *see default values in variables.tf* |
+| gluster | Gluster storage node information | *see default values in variables.tf* |
 
 ## Deployment step from Terraform CLI
 1. Clone this repository: `git clone https://github.com/pjgunadi/ibm-cloud-private-terraform-softlayer.git`
 2. [Download terraform](https://www.terraform.io/) if you don't have one
-3. [Download and apply IBM terraform plugin](https://github.com/IBM-Cloud/terraform-provider-ibm/releases)
+3. [Download and install IBM terraform plugin](https://github.com/IBM-Cloud/terraform-provider-ibm/releases)
 4. Create terraform variable file with your input value e.g. `terraform.tfvars`
 5. Apply the template
 ```
@@ -42,7 +47,9 @@ worker = {
     nodes       = "4"
     name        = "worker"
     cpu_cores   = "2"
-    disk_size   = "25 75" // GB
+    disk_size   = "25" // GB
+    kubelet_lv  = "10"
+    docker_lv   = "89"
     local_disk  = false
     memory      = "4096"
     network_speed = "100"
@@ -56,20 +63,7 @@ terraform plan
 terraform apply -auto-approve
 ```
 
-## Deployment step from IBM Cloud Automation Manager (CAM)
-1. Login to CAM
-2. Navigate to Library > Template, and click **Create Template**
-3. Select tab **From GitHub**
-4. Type the **GitHub Repository URL:** `https://github.com/pjgunadi/ibm-cloud-private-terraform-softlayer`
-5. Type the **GitHub Repository sub-directory:** `cam`
-6. Click **Create**
-7. Set **Cloud Provider** value to `IBM`
-8. Save the template
-
 ## ICP Provisioning Module
-This [ICP Provisioning module](https://github.com/pjgunadi/terraform-module-icp-deploy) is forked from [IBM Cloud Architecture](https://github.com/ibm-cloud-architecture/terraform-module-icp-deploy)
-with few modifications:
-- Added Management nodes section
-- Separate Local IP and Public IP variables
-- Added boot-node IP variable
+The ICP and GlusterFS Installation is performed by [ICP Provisioning module](https://github.com/pjgunadi/terraform-module-icp-deploy) 
+
 
