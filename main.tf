@@ -15,6 +15,111 @@ resource "ibm_compute_ssh_key" "ibm_public_key" {
   label = "${var.ssh_key_name}"
   public_key = "${tls_private_key.ssh.public_key_openssh}"
 }
+#Security Groups
+# #Private Outbound
+# resource "ibm_security_group" "private_outbound" {
+#     name = "${lower(var.instance_prefix)}-private-outbound"
+#     description = "allow outbound private network"
+# }
+# resource "ibm_security_group_rule" "allow_outbound" {
+#     direction = "egress"
+#     ether_type = "IPv4"
+#     security_group_id = "${ibm_security_group.private_outbound.id}"
+# }
+# #Private Inbound
+# resource "ibm_security_group" "private_inbound" {
+#     name = "${lower(var.instance_prefix)}-private-inbound"
+#     description = "allow inbound private network"
+# }
+# resource "ibm_security_group_rule" "allow_inbound" {
+#     direction = "ingress"
+#     ether_type = "IPv4"
+#     remote_group_id = "${ibm_security_group.private_outbound.id}"
+#     security_group_id = "${ibm_security_group.private_inbound.id}"
+# }
+#Public Outbound
+resource "ibm_security_group" "public_outbound" {
+    name = "${lower(var.instance_prefix)}-public-outbound"
+    description = "allow outbound public network"
+}
+resource "ibm_security_group_rule" "public_outbound" {
+    direction = "egress"
+    ether_type = "IPv4"
+    security_group_id = "${ibm_security_group.public_outbound.id}"
+}
+#Public SSH
+resource "ibm_security_group" "public_inbound_ssh" {
+    name = "${lower(var.instance_prefix)}-public-inbound-ssh"
+    description = "allow inbound ssh"
+}
+resource "ibm_security_group_rule" "public_inbound_ssh" {
+    direction      = "ingress"
+    ether_type     = "IPv4"
+    port_range_min = 22
+    port_range_max = 22
+    protocol       = "tcp"
+    security_group_id = "${ibm_security_group.public_inbound_ssh.id}"
+}
+#Public Master
+resource "ibm_security_group" "public_inbound_master" {
+    name = "${lower(var.instance_prefix)}-public-inbound-master"
+    description = "allow inbound master node"
+}
+resource "ibm_security_group_rule" "public_inbound_master_8443" {
+    direction      = "ingress"
+    ether_type     = "IPv4"
+    port_range_min = 8443
+    port_range_max = 8443
+    protocol       = "tcp"
+    security_group_id = "${ibm_security_group.public_inbound_master.id}"
+}
+resource "ibm_security_group_rule" "public_inbound_master_9443" {
+    direction      = "ingress"
+    ether_type     = "IPv4"
+    port_range_min = 9443
+    port_range_max = 9443
+    protocol       = "tcp"
+    #remote_group_id = "${ibm_security_group.public_outbound.id}"
+    security_group_id = "${ibm_security_group.public_inbound_master.id}"
+}
+resource "ibm_security_group_rule" "public_inbound_master_8001" {
+    direction      = "ingress"
+    ether_type     = "IPv4"
+    port_range_min = 8001
+    port_range_max = 8001
+    protocol       = "tcp"
+    security_group_id = "${ibm_security_group.public_inbound_master.id}"
+}
+resource "ibm_security_group_rule" "public_inbound_master_8500" {
+    direction      = "ingress"
+    ether_type     = "IPv4"
+    port_range_min = 8500
+    port_range_max = 8500
+    protocol       = "tcp"
+    security_group_id = "${ibm_security_group.public_inbound_master.id}"
+}
+resource "ibm_security_group_rule" "public_inbound_master_4300" {
+    direction      = "ingress"
+    ether_type     = "IPv4"
+    port_range_min = 4300
+    port_range_max = 4300
+    protocol       = "tcp"
+    remote_ip = "${ibm_compute_vm_instance.management.0.ipv4_address}"
+    security_group_id = "${ibm_security_group.public_inbound_master.id}"
+}
+#Public Proxy
+resource "ibm_security_group" "public_inbound_proxy" {
+    name = "${lower(var.instance_prefix)}-public-inbound-proxy"
+    description = "allow inbound proxy"
+}
+resource "ibm_security_group_rule" "public_inbound_proxy" {
+    direction      = "ingress"
+    ether_type     = "IPv4"
+    port_range_min = 30000
+    port_range_max = 32767
+    protocol       = "tcp"
+    security_group_id = "${ibm_security_group.public_inbound_proxy.id}"
+}
 #Local variables
 locals {
   master_datadisk = "${var.master["kubelet_lv"] + var.master["docker_lv"] + var.master["registry_lv"] + var.master["etcd_lv"] + 1}"
@@ -57,6 +162,9 @@ data "template_file" "createfs_worker" {
 
 # Create Master Node
 resource "ibm_compute_vm_instance" "master" {
+  lifecycle {
+    ignore_changes = ["private_vlan_id"]                                                                                                       
+  }
   count                = "${var.master["nodes"]}"
   datacenter           = "${var.datacenter}"
   domain               = "${var.domain}"
@@ -70,6 +178,8 @@ resource "ibm_compute_vm_instance" "master" {
   hourly_billing       = "${var.master["hourly_billing"]}"
   private_network_only = "${var.master["private_network_only"]}"
   ssh_key_ids = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
+  public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}","${ibm_security_group.public_inbound_master.id}","${ibm_security_group.public_inbound_proxy.id}"]
   #post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/master/scripts/createfs_master.sh"
 
   connection {
@@ -91,6 +201,9 @@ resource "ibm_compute_vm_instance" "master" {
 }
 # Create Proxy Node
 resource "ibm_compute_vm_instance" "proxy" {
+  lifecycle {
+    ignore_changes = ["private_vlan_id"]                                                                                                       
+  }
   count                = "${var.proxy["nodes"]}"
   datacenter           = "${var.datacenter}"
   domain               = "${var.domain}"
@@ -103,7 +216,10 @@ resource "ibm_compute_vm_instance" "proxy" {
   network_speed        = "${var.proxy["network_speed"]}"
   hourly_billing       = "${var.proxy["hourly_billing"]}"
   private_network_only = "${var.proxy["private_network_only"]}"
-  ssh_key_ids = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  private_vlan_id      = "${ibm_compute_vm_instance.master.0.private_vlan_id}"
+  #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
+  public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}","${ibm_security_group.public_inbound_proxy.id}"]
   #post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/master/scripts/createfs_proxy.sh"
 
   connection {
@@ -125,6 +241,9 @@ resource "ibm_compute_vm_instance" "proxy" {
 }
 # Create Management Node
 resource "ibm_compute_vm_instance" "management" {
+  lifecycle {
+    ignore_changes = ["private_vlan_id"]                                                                                                       
+  }
   count                = "${var.management["nodes"]}"
   datacenter           = "${var.datacenter}"
   domain               = "${var.domain}"
@@ -137,7 +256,10 @@ resource "ibm_compute_vm_instance" "management" {
   network_speed        = "${var.management["network_speed"]}"
   hourly_billing       = "${var.management["hourly_billing"]}"
   private_network_only = "${var.management["private_network_only"]}"
-  ssh_key_ids = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  private_vlan_id      = "${ibm_compute_vm_instance.master.0.private_vlan_id}"
+  #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
+  public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}"]
   #post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/master/scripts/createfs_management.sh"
 
   connection {
@@ -159,6 +281,9 @@ resource "ibm_compute_vm_instance" "management" {
 }
 # Create Worker Node
 resource "ibm_compute_vm_instance" "worker" {
+  lifecycle {
+    ignore_changes = ["private_vlan_id"]                                                                                                       
+  }
   count                = "${var.worker["nodes"]}"
   datacenter           = "${var.datacenter}"
   domain               = "${var.domain}"
@@ -171,7 +296,10 @@ resource "ibm_compute_vm_instance" "worker" {
   network_speed        = "${var.worker["network_speed"]}"
   hourly_billing       = "${var.worker["hourly_billing"]}"
   private_network_only = "${var.worker["private_network_only"]}"
-  ssh_key_ids = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  private_vlan_id      = "${ibm_compute_vm_instance.master.0.private_vlan_id}"
+  #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
+  public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}"]
   #post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/master/scripts/createfs_worker.sh"
 
   connection {
