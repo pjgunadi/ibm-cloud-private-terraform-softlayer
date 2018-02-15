@@ -17,18 +17,17 @@ This terraform template perform the following tasks:
 ## Deployment step from Terraform CLI
 1. Clone this repository: `git clone https://github.com/pjgunadi/ibm-cloud-private-terraform-softlayer.git`
 2. [Download terraform](https://www.terraform.io/) if you don't have one
-3. [Download and install IBM terraform plugin](https://github.com/IBM-Cloud/terraform-provider-ibm/releases)
-4. Login to IBM Cloud Infrastructure (SoftLayer) and create an API Username and API Key
-5. Rename [terraform_tfvars.sample](terraform_tfvars.sample) file as `terraform.tfvars` and update the input values as needed.
-6. Initialize Terraform
+3. Login to IBM Cloud Infrastructure (SoftLayer) and create an API Username and API Key
+4. Rename [terraform_tfvars.sample](terraform_tfvars.sample) file as `terraform.tfvars` and update the input values as needed.
+5. Initialize Terraform
 ```
 terraform init
 ```
-7. Review Terraform plan
+6. Review Terraform plan
 ```
 terraform plan
 ```
-8. Apply Terraform template
+7. Apply Terraform template
 ```
 terraform apply
 ```
@@ -50,13 +49,14 @@ worker = {
     hourly_billing = true
 }
 ```
-**Note:** The data disk size is the sume of LV variables + 1 (e.g kubelet_lv + docker_lv + 1).  
 3. Re-apply terraform template:
 ```
 terraform plan
 terraform apply -auto-approve
 ```
+**Note:** 
+- The data disk size is the sum of LV variables + 1 (e.g kubelet_lv + docker_lv + 1).
+- The block storage size that can be ordered from IBM Cloud Infrastructure, should match to one of the following: 20GB, 40GB, 80GB, 100GB, 250GB, 500GB, and size between 1,000GB to 12,000GB with increment of 1,000GB
+
 ## ICP and Gluster Provisioning Module
 The ICP and GlusterFS Installation is performed by [ICP Provisioning module](https://github.com/pjgunadi/terraform-module-icp-deploy) 
-
-
