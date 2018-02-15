@@ -1,3 +1,3 @@
 output "icp_url" {
-  value = "https://${softlayer_virtual_guest.master.0.ipv4_address}:8443"
+  value = "https://${ibm_compute_vm_instance.master.0.ipv4_address}:8443"
 }

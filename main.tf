@@ -1,6 +1,7 @@
-provider "softlayer" {
-  username = "${var.ibm_sl_username}"
-  api_key  = "${var.ibm_sl_api_key}"
+provider "ibm" {
+  bluemix_api_key    = "${var.ibm_bmx_api_key}"
+  softlayer_username = "${var.ibm_sl_username}"
+  softlayer_api_key  = "${var.ibm_sl_api_key}"
 }
 
 resource "tls_private_key" "ssh" {
@@ -10,9 +11,8 @@ resource "tls_private_key" "ssh" {
     command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL"
   }
 }
-
-resource "softlayer_ssh_key" "ibm_public_key" {
-  name       = "${var.ssh_key_name}"
+resource "ibm_compute_ssh_key" "ibm_public_key" {
+  label = "${var.ssh_key_name}"
   public_key = "${tls_private_key.ssh.public_key_openssh}"
 }
 #Local variables
@@ -56,20 +56,21 @@ data "template_file" "createfs_worker" {
 }
 
 # Create Master Node
-resource "softlayer_virtual_guest" "master" {
+resource "ibm_compute_vm_instance" "master" {
   count                = "${var.master["nodes"]}"
-  region               = "${var.datacenter}"
+  datacenter           = "${var.datacenter}"
   domain               = "${var.domain}"
-  name                 = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.master["name"]),count.index + 1) }"
-  image                = "${var.os_reference}"
-  cpu                  = "${var.master["cpu_cores"]}"
-  ram                  = "${var.master["memory"]}"
+  hostname             = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.master["name"]),count.index + 1) }"
+  os_reference_code    = "${var.os_reference}"
+  cores                = "${var.master["cpu_cores"]}"
+  memory               = "${var.master["memory"]}"
   disks                = ["${var.master["disk_size"]}","${local.master_datadisk}"]
   local_disk           = "${var.master["local_disk"]}"
-  public_network_speed = "${var.master["network_speed"]}"
+  network_speed        = "${var.master["network_speed"]}"
   hourly_billing       = "${var.master["hourly_billing"]}"
   private_network_only = "${var.master["private_network_only"]}"
-  ssh_keys             = ["${softlayer_ssh_key.ibm_public_key.id}"]
+  ssh_key_ids = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  #post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/master/scripts/createfs_master.sh"
 
   connection {
     user = "${var.ssh_user}"
@@ -89,20 +90,21 @@ resource "softlayer_virtual_guest" "master" {
   }
 }
 # Create Proxy Node
-resource "softlayer_virtual_guest" "proxy" {
+resource "ibm_compute_vm_instance" "proxy" {
   count                = "${var.proxy["nodes"]}"
-  region               = "${var.datacenter}"
+  datacenter           = "${var.datacenter}"
   domain               = "${var.domain}"
-  name                 = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.proxy["name"]),count.index + 1) }"
-  image                = "${var.os_reference}"
-  cpu                  = "${var.proxy["cpu_cores"]}"
-  ram                  = "${var.proxy["memory"]}"
+  hostname             = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.proxy["name"]),count.index + 1) }"
+  os_reference_code    = "${var.os_reference}"
+  cores                = "${var.proxy["cpu_cores"]}"
+  memory               = "${var.proxy["memory"]}"
   disks                = ["${var.proxy["disk_size"]}","${local.proxy_datadisk}"]
   local_disk           = "${var.proxy["local_disk"]}"
-  public_network_speed = "${var.proxy["network_speed"]}"
+  network_speed        = "${var.proxy["network_speed"]}"
   hourly_billing       = "${var.proxy["hourly_billing"]}"
   private_network_only = "${var.proxy["private_network_only"]}"
-  ssh_keys             = ["${softlayer_ssh_key.ibm_public_key.id}"]
+  ssh_key_ids = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  #post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/master/scripts/createfs_proxy.sh"
 
   connection {
     user = "${var.ssh_user}"
@@ -122,20 +124,21 @@ resource "softlayer_virtual_guest" "proxy" {
   }
 }
 # Create Management Node
-resource "softlayer_virtual_guest" "management" {
+resource "ibm_compute_vm_instance" "management" {
   count                = "${var.management["nodes"]}"
-  region               = "${var.datacenter}"
+  datacenter           = "${var.datacenter}"
   domain               = "${var.domain}"
-  name                 = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.management["name"]),count.index + 1) }"
-  image                = "${var.os_reference}"
-  cpu                  = "${var.management["cpu_cores"]}"
-  ram                  = "${var.management["memory"]}"
+  hostname             = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.management["name"]),count.index + 1) }"
+  os_reference_code    = "${var.os_reference}"
+  cores                = "${var.management["cpu_cores"]}"
+  memory               = "${var.management["memory"]}"
   disks                = ["${var.management["disk_size"]}","${local.management_datadisk}"]
   local_disk           = "${var.management["local_disk"]}"
-  public_network_speed = "${var.management["network_speed"]}"
+  network_speed        = "${var.management["network_speed"]}"
   hourly_billing       = "${var.management["hourly_billing"]}"
   private_network_only = "${var.management["private_network_only"]}"
-  ssh_keys             = ["${softlayer_ssh_key.ibm_public_key.id}"]
+  ssh_key_ids = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  #post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/master/scripts/createfs_management.sh"
 
   connection {
     user = "${var.ssh_user}"
@@ -155,20 +158,21 @@ resource "softlayer_virtual_guest" "management" {
   }
 }
 # Create Worker Node
-resource "softlayer_virtual_guest" "worker" {
+resource "ibm_compute_vm_instance" "worker" {
   count                = "${var.worker["nodes"]}"
-  region               = "${var.datacenter}"
+  datacenter           = "${var.datacenter}"
   domain               = "${var.domain}"
-  name                 = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.worker["name"]),count.index + 1) }"
-  image                = "${var.os_reference}"
-  cpu                  = "${var.worker["cpu_cores"]}"
-  ram                  = "${var.worker["memory"]}"
+  hostname             = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.worker["name"]),count.index + 1) }"
+  os_reference_code    = "${var.os_reference}"
+  cores                = "${var.worker["cpu_cores"]}"
+  memory               = "${var.worker["memory"]}"
   disks                = ["${var.worker["disk_size"]}","${local.worker_datadisk}","${var.worker["glusterfs"]}"]
   local_disk           = "${var.worker["local_disk"]}"
-  public_network_speed = "${var.worker["network_speed"]}"
+  network_speed        = "${var.worker["network_speed"]}"
   hourly_billing       = "${var.worker["hourly_billing"]}"
   private_network_only = "${var.worker["private_network_only"]}"
-  ssh_keys             = ["${softlayer_ssh_key.ibm_public_key.id}"]
+  ssh_key_ids = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  #post_install_script_uri = "https://raw.githubusercontent.com/pjgunadi/ibm-cloud-private-terraform-softlayer/master/scripts/createfs_worker.sh"
 
   connection {
     user = "${var.ssh_user}"
@@ -188,34 +192,34 @@ resource "softlayer_virtual_guest" "worker" {
   }
 }
 #Create Gluster Node
-resource "softlayer_virtual_guest" "gluster" {
+resource "ibm_compute_vm_instance" "gluster" {
   count                = "${var.gluster["nodes"]}"
-  region               = "${var.datacenter}"
+  datacenter           = "${var.datacenter}"
   domain               = "${var.domain}"
-  name                 = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.gluster["name"]),count.index + 1) }"
-  image                = "${var.os_reference}"
-  cpu                  = "${var.gluster["cpu_cores"]}"
-  ram                  = "${var.gluster["memory"]}"
+  hostname             = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.gluster["name"]),count.index + 1) }"
+  os_reference_code    = "${var.os_reference}"
+  cores                = "${var.gluster["cpu_cores"]}"
+  memory               = "${var.gluster["memory"]}"
   disks                = ["${var.gluster["disk_size"]}","${var.gluster["glusterfs"]}"]
   local_disk           = "${var.gluster["local_disk"]}"
-  public_network_speed = "${var.gluster["network_speed"]}"
+  network_speed        = "${var.gluster["network_speed"]}"
   hourly_billing       = "${var.gluster["hourly_billing"]}"
   private_network_only = "${var.gluster["private_network_only"]}"
-  ssh_keys             = ["${softlayer_ssh_key.ibm_public_key.id}"]
+  ssh_key_ids = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
 }
 
 module "icpprovision" {
   source = "github.com/pjgunadi/terraform-module-icp-deploy"
   //Connection IPs
-  icp-ips = "${concat(softlayer_virtual_guest.master.*.ipv4_address, softlayer_virtual_guest.proxy.*.ipv4_address, softlayer_virtual_guest.management.*.ipv4_address, softlayer_virtual_guest.worker.*.ipv4_address)}"
-  boot-node = "${element(softlayer_virtual_guest.master.*.ipv4_address, 0)}"
+  icp-ips = "${concat(ibm_compute_vm_instance.master.*.ipv4_address, ibm_compute_vm_instance.proxy.*.ipv4_address, ibm_compute_vm_instance.management.*.ipv4_address, ibm_compute_vm_instance.worker.*.ipv4_address)}"
+  boot-node = "${element(ibm_compute_vm_instance.master.*.ipv4_address, 0)}"
 
   //Configuration IPs
-  icp-master = ["${softlayer_virtual_guest.master.*.ipv4_address_private}"]
-  icp-worker = ["${softlayer_virtual_guest.worker.*.ipv4_address_private}"]
-  #icp-proxy =  ["${softlayer_virtual_guest.proxy.*.ipv4_address_private}"]
-  icp-proxy =  ["${softlayer_virtual_guest.master.*.ipv4_address_private}"] #Combined Proxy with Master
-  icp-management = ["${softlayer_virtual_guest.management.*.ipv4_address_private}"]
+  icp-master = ["${ibm_compute_vm_instance.master.*.ipv4_address_private}"]
+  icp-worker = ["${ibm_compute_vm_instance.worker.*.ipv4_address_private}"]
+  #icp-proxy =  ["${ibm_compute_vm_instance.proxy.*.ipv4_address_private}"]
+  icp-proxy =  ["${ibm_compute_vm_instance.master.*.ipv4_address_private}"] #Combined Proxy with Master
+  icp-management = ["${ibm_compute_vm_instance.management.*.ipv4_address_private}"]
 
   icp-version = "${var.icp_version}"
 
@@ -238,20 +242,20 @@ module "icpprovision" {
     "calico_ipip_enabled"       = "true"
     "docker_log_max_size"       = "10m"
     "docker_log_max_file"       = "10"
-    "cluster_access_ip"         = "${element(softlayer_virtual_guest.master.*.ipv4_address, 0)}"
-  #  "proxy_access_ip"           = "${element(softlayer_virtual_guest.proxy.*.ipv4_address, 0)}"
-    "proxy_access_ip"           = "${element(softlayer_virtual_guest.master.*.ipv4_address, 0)}" #combined proxy with master
+    "cluster_access_ip"         = "${element(ibm_compute_vm_instance.master.*.ipv4_address, 0)}"
+  #  "proxy_access_ip"           = "${element(ibm_compute_vm_instance.proxy.*.ipv4_address, 0)}"
+    "proxy_access_ip"           = "${element(ibm_compute_vm_instance.master.*.ipv4_address, 0)}" #combined proxy with master
   }
 
   #Gluster
   #Gluster and Heketi nodes are set to worker nodes for demo. Use separate nodes for production
   install_gluster = "${var.install_gluster}"
   gluster_size = "${var.worker["nodes"]}" 
-  gluster_ips = ["${softlayer_virtual_guest.worker.*.ipv4_address}"] 
-  gluster_svc_ips = ["${softlayer_virtual_guest.worker.*.ipv4_address_private}"]
+  gluster_ips = ["${ibm_compute_vm_instance.worker.*.ipv4_address}"] 
+  gluster_svc_ips = ["${ibm_compute_vm_instance.worker.*.ipv4_address_private}"]
   device_name = "/dev/xvde" #update according to the device name provided by cloud provider
-  heketi_ip = "${softlayer_virtual_guest.worker.0.ipv4_address}" 
-  heketi_svc_ip = "${softlayer_virtual_guest.worker.0.ipv4_address_private}"
+  heketi_ip = "${ibm_compute_vm_instance.worker.0.ipv4_address}" 
+  heketi_svc_ip = "${ibm_compute_vm_instance.worker.0.ipv4_address_private}"
   cluster_name = "${var.cluster_name}.icp"
 
   generate_key = true

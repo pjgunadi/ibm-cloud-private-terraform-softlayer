@@ -17,17 +17,26 @@ This terraform template perform the following tasks:
 ## Deployment step from Terraform CLI
 1. Clone this repository: `git clone https://github.com/pjgunadi/ibm-cloud-private-terraform-softlayer.git`
 2. [Download terraform](https://www.terraform.io/) if you don't have one
-3. Login to IBM Cloud Infrastructure (SoftLayer) and create an API Username and API Key
-4. Rename [terraform_tfvars.sample](terraform_tfvars.sample) file as `terraform.tfvars` and update the input values as needed.
-5. Initialize Terraform
+3. [Download and install IBM terraform plugin](https://github.com/IBM-Cloud/terraform-provider-ibm/releases)
+- Download the plugin for your workstation OS (Windows/MacOS/Linux)
+- Extract the plugin to your local executable directory. Example: `/usr/local/bin/terraform-provider-ibm`
+- Update the $HOME/.terraformrc to reference the IBM Provider:
+```
+providers {
+  ibm = "/usr/local/bin/terraform-provider-ibm"
+}
+```
+4. Login to IBM Cloud Infrastructure (SoftLayer) and create an API Username and API Key
+5. Rename [terraform_tfvars.sample](terraform_tfvars.sample) file as `terraform.tfvars` and update the input values as needed.
+6. Initialize Terraform
 ```
 terraform init
 ```
-6. Review Terraform plan
+7. Review Terraform plan
 ```
 terraform plan
 ```
-7. Apply Terraform template
+8. Apply Terraform template
 ```
 terraform apply
 ```
