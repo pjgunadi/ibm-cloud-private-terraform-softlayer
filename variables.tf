@@ -77,9 +77,10 @@ variable "master" {
     cpu_cores   = "8"
     disk_size   = "25" // GB
     kubelet_lv  = "10"
-    docker_lv   = "70"
+    docker_lv   = "50"
     registry_lv = "15"
-    etcd_lv     = "4"    
+    etcd_lv     = "4"
+    management_lv = "20"    
     local_disk  = false
     memory      = "8192"
     network_speed = "1000"

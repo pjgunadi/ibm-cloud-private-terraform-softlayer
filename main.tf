@@ -122,7 +122,7 @@ resource "ibm_compute_ssh_key" "ibm_public_key" {
 # }
 #Local variables
 locals {
-  master_datadisk = "${var.master["kubelet_lv"] + var.master["docker_lv"] + var.master["registry_lv"] + var.master["etcd_lv"] + 1}"
+  master_datadisk = "${var.master["kubelet_lv"] + var.master["docker_lv"] + var.master["registry_lv"] + var.master["etcd_lv"] + var.master["management_lv"] + 1}"
   proxy_datadisk = "${var.proxy["kubelet_lv"] + var.proxy["docker_lv"] + 1}"
   management_datadisk = "${var.management["kubelet_lv"] + var.management["docker_lv"] + var.management["management_lv"] + 1}"
   worker_datadisk = "${var.worker["kubelet_lv"] + var.worker["docker_lv"] + 1}"
@@ -135,6 +135,7 @@ data "template_file" "createfs_master" {
     docker_lv = "${var.master["docker_lv"]}"
     etcd_lv = "${var.master["etcd_lv"]}"
     registry_lv = "${var.master["registry_lv"]}"
+    management_lv = "${var.master["management_lv"]}"
   }
 }
 data "template_file" "createfs_proxy" {
