@@ -126,6 +126,10 @@ locals {
   proxy_datadisk = "${var.proxy["kubelet_lv"] + var.proxy["docker_lv"] + 1}"
   management_datadisk = "${var.management["kubelet_lv"] + var.management["docker_lv"] + var.management["management_lv"] + 1}"
   worker_datadisk = "${var.worker["kubelet_lv"] + var.worker["docker_lv"] + 1}"
+  #Destroy nodes variables
+  icp_boot_node_ip = "${ibm_compute_vm_instance.master.0.ipv4_address}"
+  heketi_ip = "${ibm_compute_vm_instance.worker.0.ipv4_address}"
+  ssh_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 }
 
 data "template_file" "createfs_master" {
@@ -319,6 +323,23 @@ resource "ibm_compute_vm_instance" "worker" {
       "chmod +x /tmp/createfs.sh; sudo /tmp/createfs.sh"
     ]
   }
+
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "scp -i ${var.key_pair_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_worker.sh ${var.ssh_user}@${local.icp_boot_node_ip}:/tmp/"
+  }
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "ssh -i ${var.key_pair_name} ${local.ssh_options} ${var.ssh_user}@${local.icp_boot_node_ip} \"chmod +x /tmp/delete_worker.sh; /tmp/delete_worker.sh ${var.icp_version} ${self.ipv4_address_private}\"; echo done"
+  } 
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "scp -i ${var.key_pair_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_gluster.sh ${var.ssh_user}@${local.heketi_ip}:/tmp/"
+  }
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "ssh -i ${var.key_pair_name} ${local.ssh_options} ${var.ssh_user}@${local.heketi_ip} \"chmod +x /tmp/delete_gluster.sh; /tmp/delete_gluster.sh ${self.ipv4_address_private}\"; echo done"
+  }  
 }
 #Create Gluster Node
 resource "ibm_compute_vm_instance" "gluster" {
@@ -338,6 +359,15 @@ resource "ibm_compute_vm_instance" "gluster" {
   private_vlan_id      = "${ibm_compute_vm_instance.master.0.private_vlan_id}"
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}"]
+
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "scp -i ${var.key_pair_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_gluster.sh ${var.ssh_user}@${local.heketi_ip}:/tmp/"
+  }
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "ssh -i ${var.key_pair_name} ${local.ssh_options} ${var.ssh_user}@${local.heketi_ip} \"chmod +x /tmp/delete_gluster.sh; /tmp/delete_gluster.sh ${self.ipv4_address_private}\"; echo done"
+  }
 }
 
 module "icpprovision" {
