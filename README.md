@@ -28,9 +28,9 @@ providers {
 ```
 4. Login to IBM Cloud Infrastructure (SoftLayer) and create an API Username and API Key
 5. Rename [terraform_tfvars.sample](terraform_tfvars.sample) file as `terraform.tfvars` and update the input values as needed.
-6. Initialize Terraform
+6. Initialize Terraform to download and update the dependencies
 ```
-terraform init
+terraform init -upgrade
 ```
 7. Review Terraform plan
 ```
