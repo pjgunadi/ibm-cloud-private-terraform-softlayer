@@ -326,11 +326,11 @@ resource "ibm_compute_vm_instance" "worker" {
 
   provisioner "local-exec" {
     when    = "destroy"
-    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL; chmod 600 ${var.ssh_key_name}"
+    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL"
   }
   provisioner "local-exec" {
     when    = "destroy"
-    command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_worker.sh ${var.ssh_user}@${local.icp_boot_node_ip}:/tmp/"
+    command = "chmod 600 ${var.ssh_key_name}; scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_worker.sh ${var.ssh_user}@${local.icp_boot_node_ip}:/tmp/"
   }
   provisioner "local-exec" {
     when    = "destroy"
@@ -366,11 +366,11 @@ resource "ibm_compute_vm_instance" "gluster" {
 
   provisioner "local-exec" {
     when    = "destroy"
-    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL; chmod 600 ${var.ssh_key_name}"
+    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL"
   }
   provisioner "local-exec" {
     when    = "destroy"
-    command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_gluster.sh ${var.ssh_user}@${local.heketi_ip}:/tmp/"
+    command = "chmod 600 ${var.ssh_key_name}; scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_gluster.sh ${var.ssh_user}@${local.heketi_ip}:/tmp/"
   }
   provisioner "local-exec" {
     when    = "destroy"
