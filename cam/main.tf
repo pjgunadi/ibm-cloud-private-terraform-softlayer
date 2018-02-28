@@ -8,7 +8,7 @@ resource "tls_private_key" "ssh" {
   algorithm = "RSA"
 
   provisioner "local-exec" {
-    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL"
+    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL && chmod 600 ${var.ssh_key_name}"
   }
 }
 resource "ibm_compute_ssh_key" "ibm_public_key" {
@@ -326,7 +326,7 @@ resource "ibm_compute_vm_instance" "worker" {
 
   provisioner "local-exec" {
     when    = "destroy"
-    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL; chmod 600 ${var.ssh_key_name}; scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_worker.sh ${var.ssh_user}@${local.icp_boot_node_ip}:/tmp/"
+    command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_worker.sh ${var.ssh_user}@${local.icp_boot_node_ip}:/tmp/; echo done"
   }
   provisioner "local-exec" {
     when    = "destroy"
@@ -334,7 +334,7 @@ resource "ibm_compute_vm_instance" "worker" {
   } 
   provisioner "local-exec" {
     when    = "destroy"
-    command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_gluster.sh ${var.ssh_user}@${local.heketi_ip}:/tmp/"
+    command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_gluster.sh ${var.ssh_user}@${local.heketi_ip}:/tmp/; echo done"
   }
   provisioner "local-exec" {
     when    = "destroy"
@@ -362,7 +362,7 @@ resource "ibm_compute_vm_instance" "gluster" {
 
   provisioner "local-exec" {
     when    = "destroy"
-    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL; scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_gluster.sh ${var.ssh_user}@${local.heketi_ip}:/tmp/"
+    command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_gluster.sh ${var.ssh_user}@${local.heketi_ip}:/tmp/"
   }
   provisioner "local-exec" {
     when    = "destroy"
