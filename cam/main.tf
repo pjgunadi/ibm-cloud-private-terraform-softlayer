@@ -326,7 +326,7 @@ resource "ibm_compute_vm_instance" "worker" {
 
   provisioner "local-exec" {
     when    = "destroy"
-    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL"
+    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL; chmod 600 ${var.ssh_key_name}"
   }
   provisioner "local-exec" {
     when    = "destroy"
@@ -366,7 +366,7 @@ resource "ibm_compute_vm_instance" "gluster" {
 
   provisioner "local-exec" {
     when    = "destroy"
-    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL"
+    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL; chmod 600 ${var.ssh_key_name}"
   }
   provisioner "local-exec" {
     when    = "destroy"
