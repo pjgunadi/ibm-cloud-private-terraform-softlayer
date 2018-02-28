@@ -183,7 +183,7 @@
       "name": "install_gluster",
       "label": "Install Gluster",
       "description": "Install Gluster",
-      "default": true,
+      "default": "true",
       "hidden": false,
       "immutable": false,
       "required": true,
