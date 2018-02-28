@@ -1,6 +1,6 @@
 {
-    "name": "ICP deployment in IBM Softlayer",
-    "description": "IBM Cloud Private Deployment in IBM Softlayer",
+    "name": "ICP deployment in IBM Cloud Infrastructure",
+    "description": "IBM Cloud Private Deployment in IBM Cloud Infrastructure",
     "version": "2.1.0.1",
     "imageUrl": "",
     "image": "",
@@ -23,13 +23,13 @@
       }
     },
     "metadata": {
-      "displayName": "IBM Cloud Private Deployment in IBM Softlayer",
+      "displayName": "IBM Cloud Private Deployment in IBM Cloud Infrastructure",
       "providerDisplayName": "IBM",
-      "longDescription": "Important note: This deployment may incur cost to your IBM Softlayer account",
+      "longDescription": "Important note: This deployment may incur cost to your IBM Cloud Infrastructure account",
       "bullets": [
         {
           "title": "Clouds",
-          "description": "<ul style=\"list-style-type: disc; margin-left: 12px;\"><li>IBM Softlayer</li></ul>"
+          "description": "<ul style=\"list-style-type: disc; margin-left: 12px;\"><li>IBM Cloud Infrastructure</li></ul>"
         },
         {
           "title": "Template version",
