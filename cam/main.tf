@@ -11,7 +11,7 @@ resource "tls_private_key" "ssh" {
     command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL"
   }
   provisioner "local-exec" {
-    command = "chmod 600 ${var.key_pair_name}"
+    command = "chmod 600 ${var.ssh_key_name}"
   }
 }
 resource "ibm_compute_ssh_key" "ibm_public_key" {
