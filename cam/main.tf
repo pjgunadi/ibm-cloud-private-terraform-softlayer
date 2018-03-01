@@ -327,22 +327,22 @@ resource "ibm_compute_vm_instance" "worker" {
     ]
   }
 
-  # provisioner "local-exec" {
-  #   when    = "destroy"
-  #   command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_worker.sh ${var.ssh_user}@${local.icp_boot_node_ip}:/tmp/"
-  # }
-  # provisioner "local-exec" {
-  #   when    = "destroy"
-  #   command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.icp_boot_node_ip} \"chmod +x /tmp/delete_worker.sh; /tmp/delete_worker.sh ${var.icp_version} ${self.ipv4_address_private}\"; echo done"
-  # } 
-  # provisioner "local-exec" {
-  #   when    = "destroy"
-  #   command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_gluster.sh ${var.ssh_user}@${local.heketi_ip}:/tmp/"
-  # }
-  # provisioner "local-exec" {
-  #   when    = "destroy"
-  #   command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.heketi_ip} \"chmod +x /tmp/delete_gluster.sh; /tmp/delete_gluster.sh ${self.ipv4_address_private}\"; echo done"
-  # }  
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_worker.sh ${var.ssh_user}@${local.icp_boot_node_ip}:/tmp/"
+  }
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.icp_boot_node_ip} \"chmod +x /tmp/delete_worker.sh; /tmp/delete_worker.sh ${var.icp_version} ${self.ipv4_address_private}\"; echo done"
+  } 
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_gluster.sh ${var.ssh_user}@${local.heketi_ip}:/tmp/"
+  }
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.heketi_ip} \"chmod +x /tmp/delete_gluster.sh; /tmp/delete_gluster.sh ${self.ipv4_address_private}\"; echo done"
+  }  
 }
 #Create Gluster Node
 resource "ibm_compute_vm_instance" "gluster" {
