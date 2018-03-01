@@ -329,14 +329,6 @@ resource "ibm_compute_vm_instance" "worker" {
 
   # provisioner "local-exec" {
   #   when    = "destroy"
-  #   command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL"
-  # }
-  # provisioner "local-exec" {
-  #   when    = "destroy"
-  #   command = "chmod 600 ${var.ssh_key_name}"
-  # }
-  # provisioner "local-exec" {
-  #   when    = "destroy"
   #   command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_worker.sh ${var.ssh_user}@${local.icp_boot_node_ip}:/tmp/"
   # }
   # provisioner "local-exec" {
