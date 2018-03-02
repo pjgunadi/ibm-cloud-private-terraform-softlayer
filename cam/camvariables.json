@@ -118,7 +118,6 @@
       "name": "icpadmin_password",
       "label": "ICP admin password",
       "description": "Password for ICP admin",
-      "default": "admin",
       "hidden": false,
       "immutable": false,
       "required": true,
