@@ -329,6 +329,14 @@ resource "ibm_compute_vm_instance" "worker" {
 
   provisioner "local-exec" {
     when    = "destroy"
+    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL"
+  }
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "chmod 600 ${var.ssh_key_name}"
+  }
+  provisioner "local-exec" {
+    when    = "destroy"
     command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_worker.sh ${var.ssh_user}@${local.icp_boot_node_ip}:/tmp/"
   }
   provisioner "local-exec" {
@@ -365,6 +373,14 @@ resource "ibm_compute_vm_instance" "gluster" {
 
   provisioner "local-exec" {
     when    = "destroy"
+    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL"
+  }
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "chmod 600 ${var.ssh_key_name}"
+  }
+  provisioner "local-exec" {
+    when    = "destroy"
     command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_gluster.sh ${var.ssh_user}@${local.heketi_ip}:/tmp/"
   }
   provisioner "local-exec" {
@@ -373,8 +389,32 @@ resource "ibm_compute_vm_instance" "gluster" {
   }
 }
 
+resource "null_resource" "copy_delete_worker" {
+  connection {
+    host = "${local.icp_boot_node_ip}"
+    user = "${var.ssh_user}"
+    private_key = "${tls_private_key.ssh.private_key_pem}"
+  }
+  provisioner "file" {
+    source = "${path.module}/scripts/destroy_delete_worker.sh"
+    destination = "/tmp/delete_worker.sh"
+  }
+}
+
+resource "null_resource" "copy_delete_gluster" {
+  connection {
+    host = "${local.heketi_ip}"
+    user = "${var.ssh_user}"
+    private_key = "${tls_private_key.ssh.private_key_pem}"
+  }
+  provisioner "file" {
+    source = "${path.module}/scripts/destroy_delete_gluster.sh"
+    destination = "/tmp/delete_gluster.sh"
+  }
+}
+
 module "icpprovision" {
-  source = "github.com/pjgunadi/terraform-module-icp-deploy"
+  source = "github.com/pjgunadi/terraform-module-icp-deploy?ref=test"
   //Connection IPs
   icp-ips = "${concat(ibm_compute_vm_instance.master.*.ipv4_address, ibm_compute_vm_instance.proxy.*.ipv4_address, ibm_compute_vm_instance.management.*.ipv4_address, ibm_compute_vm_instance.worker.*.ipv4_address)}"
   boot-node = "${element(ibm_compute_vm_instance.master.*.ipv4_address, 0)}"
