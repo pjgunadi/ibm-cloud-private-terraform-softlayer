@@ -396,7 +396,7 @@ resource "null_resource" "copy_delete_worker" {
     private_key = "${tls_private_key.ssh.private_key_pem}"
   }
   provisioner "file" {
-    source = "${path.module}/scripts/destroy_delete_worker.sh"
+    source = "${path.module}/scripts/destroy/delete_worker.sh"
     destination = "/tmp/delete_worker.sh"
   }
 }
@@ -408,7 +408,7 @@ resource "null_resource" "copy_delete_gluster" {
     private_key = "${tls_private_key.ssh.private_key_pem}"
   }
   provisioner "file" {
-    source = "${path.module}/scripts/destroy_delete_gluster.sh"
+    source = "${path.module}/scripts/destroy/delete_gluster.sh"
     destination = "/tmp/delete_gluster.sh"
   }
 }
