@@ -471,7 +471,7 @@ resource "ibm_compute_vm_instance" "gluster" {
   }
   provisioner "local-exec" {
     when    = "destroy"
-    command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.heketi_ip} \"chmod +x /tmp/delete_gluster.sh; /tmp/delete_gluster.sh ${self.ipv4_address_private}\"; echo done"
+    command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.heketi_ip} \"chmod +x /tmp/delete_gluster.sh; /tmp/delete_gluster.sh ${self.ipv4_address_private} ${var.heketi_admin_pwd}\"; echo done"
   }
 }
 
