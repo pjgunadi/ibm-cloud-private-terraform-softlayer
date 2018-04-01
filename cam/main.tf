@@ -503,10 +503,12 @@ resource "null_resource" "copy_delete_gluster" {
 
 module "icpprovision" {
   #source = "github.com/pjgunadi/terraform-module-icp-deploy"
-  source = "github.com/pjgunadi/terraform-module-icp-deploy?ref=2.1.0.2"
+  source = "github.com/pjgunadi/terraform-module-icp-deploy?ref=test"
 
   //Connection IPs
-  icp-ips   = "${concat(ibm_compute_vm_instance.master.*.ipv4_address, ibm_compute_vm_instance.proxy.*.ipv4_address, ibm_compute_vm_instance.management.*.ipv4_address, ibm_compute_vm_instance.va.*.ipv4_address, ibm_compute_vm_instance.worker.*.ipv4_address)}"
+  #icp-ips   = "${concat(ibm_compute_vm_instance.master.*.ipv4_address, ibm_compute_vm_instance.proxy.*.ipv4_address, ibm_compute_vm_instance.management.*.ipv4_address, ibm_compute_vm_instance.va.*.ipv4_address, ibm_compute_vm_instance.worker.*.ipv4_address)}"
+  icp-ips = "${concat(ibm_compute_vm_instance.master.*.ipv4_address)}"
+
   boot-node = "${element(ibm_compute_vm_instance.master.*.ipv4_address, 0)}"
 
   //Configuration IPs
@@ -516,16 +518,19 @@ module "icpprovision" {
   icp-management = ["${split(",",var.management["nodes"] == 0 ? "" : join(",",ibm_compute_vm_instance.management.*.ipv4_address_private))}"]
   icp-va         = ["${split(",",var.va["nodes"] == 0 ? "" : join(",",ibm_compute_vm_instance.va.*.ipv4_address_private))}"]
 
-  icp-version = "${var.icp_version}"
+  # Workaround for terraform issue #10857
+  cluster_size    = "${var.master["nodes"]}"
+  worker_size     = "${var.worker["nodes"]}"
+  proxy_size      = "${var.proxy["nodes"]}"
+  management_size = "${var.management["nodes"]}"
+  va_size         = "${var.va["nodes"]}"
 
   icp_source_server   = "${var.icp_source_server}"
   icp_source_user     = "${var.icp_source_user}"
   icp_source_password = "${var.icp_source_password}"
   image_file          = "${var.icp_source_path}"
 
-  # Workaround for terraform issue #10857
-  # When this is fixed, we can work this out automatically
-  cluster_size = "${var.master["nodes"] + var.worker["nodes"] + var.proxy["nodes"] + var.management["nodes"] + var.va["nodes"]}"
+  icp-version = "${var.icp_version}"
 
   icp_configuration = {
     "cluster_name"                 = "${var.cluster_name}"
