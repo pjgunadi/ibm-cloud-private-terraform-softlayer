@@ -211,6 +211,17 @@
       "type": "string"
     },     
     {
+      "name": "disable_management",
+      "label": "Disable Management",
+      "description": "Disable Management Service",
+      "default": ["istio", "custom-metrics-adapter"],
+      "hidden": false,
+      "immutable": false,
+      "required": true,
+      "secured": false,
+      "type": "list"
+    },    
+    {
       "name": "master",
       "label": "Master Node",
       "description": "Master Node Informations",
