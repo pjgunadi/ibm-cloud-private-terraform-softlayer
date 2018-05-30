@@ -226,7 +226,7 @@
         "label": "Proxy Node",
         "description": "Proxy Node Informations",
         "default": {"nodes": "0", "name": "proxy", "cpu_cores": "2", "disk_size":"25","kubelet_lv":"10","docker_lv":"39","local_disk":false,"memory":"4096","network_speed":"1000","private_network_only":false,"hourly_billing":true },
-        "hidden": true,
+        "hidden": false,
         "immutable": false,
         "required": true,
         "secured": false,
