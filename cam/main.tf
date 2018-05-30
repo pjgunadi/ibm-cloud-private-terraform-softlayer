@@ -544,7 +544,7 @@ module "icpprovision" {
     "docker_log_max_file"          = "10"
     "cluster_lb_address"           = "${ibm_compute_vm_instance.master.0.ipv4_address}"
     "proxy_lb_address"             = "${element(split(",",var.proxy["nodes"] == 0 ? join(",",ibm_compute_vm_instance.master.*.ipv4_address) : join(",",ibm_compute_vm_instance.proxy.*.ipv4_address)),0)}"
-    "disabled_management_services" = ["${split(",",var.va["nodes"] == "0" ? join(",",concat(list("vulnerability-advisor"),var.disable_management)) : join(",",var.disable_management))}"]
+    "disabled_management_services" = ["${split(",",var.va["nodes"] == 0 ? join(",",concat(list("vulnerability-advisor"),var.disable_management)) : join(",",var.disable_management))}"]
 
     #"cluster_access_ip"        = "${element(ibm_compute_vm_instance.master.*.ipv4_address, 0)}"
     #"proxy_access_ip"          = "${element(ibm_compute_vm_instance.proxy.*.ipv4_address, 0)}"
