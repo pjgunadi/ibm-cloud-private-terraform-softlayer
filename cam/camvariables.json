@@ -214,7 +214,7 @@
       "name": "disable_management",
       "label": "Disable Management",
       "description": "Disable Management Service",
-      "default": ["istio", "custom-metrics-adapter"],
+      "default": ["vulnerability-advisor", "istio", "custom-metrics-adapter"],
       "hidden": false,
       "immutable": false,
       "required": true,
