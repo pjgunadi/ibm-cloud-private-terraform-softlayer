@@ -115,6 +115,27 @@
       "type": "string"
     },
     {
+      "name": "icp_version",
+      "label": "ICP Version",
+      "description": "ICP Version",
+      "default": "2.1.0.3",
+      "hidden": false,
+      "immutable": false,
+      "required": true,
+      "secured": false,
+      "type": "string",
+      "options": [
+        {
+          "value": "2.1.0.3",
+          "label": "2.1.0.3"
+        },
+        {
+            "value": "2.1.0.3-ee",
+            "label": "2.1.0.3-ee"
+        }
+      ]
+    },    
+    {
       "name": "icpadmin_password",
       "label": "ICP admin password",
       "description": "Password for ICP admin",
