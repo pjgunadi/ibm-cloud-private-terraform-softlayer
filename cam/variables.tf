@@ -90,7 +90,7 @@ variable "instance_prefix" {
 }
 
 variable "disable_management" {
-  default = ["vulnerability-advisor", "istio", "custom-metrics-adapter"]
+  default = ["istio", "custom-metrics-adapter"]
 }
 
 variable "gluster_volume_type" {
