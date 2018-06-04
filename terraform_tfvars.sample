@@ -97,3 +97,7 @@ gluster = {
     private_network_only = false
     hourly_billing = true
 }
+#icp_source_server="x.x.x.x"                    #SFTP Server for Enterprise Edition
+#icp_source_user="ftp-user"                     #SFTP Login user
+#icp_source_password="ftp-password"             #SFTP Login password
+#icp_source_path="path-to-icp-enterprise-file"  #Download file location in SFTP server
