@@ -93,12 +93,12 @@ variable "disable_management" {
   default = ["istio", "custom-metrics-adapter"]
 }
 
-variable "gluster_volume_type" {
-  default = "none"
-}
-
 variable "kibana_install" {
   default = "false"
+}
+
+variable "gluster_volume_type" {
+  default = "none"
 }
 
 variable "heketi_admin_pwd" {
@@ -135,7 +135,7 @@ variable "proxy" {
     cpu_cores            = "2"
     disk_size            = "25"    // GB
     kubelet_lv           = "10"
-    docker_lv            = "39"
+    docker_lv            = "64"
     local_disk           = false
     memory               = "4096"
     network_speed        = "1000"
@@ -153,8 +153,8 @@ variable "management" {
     cpu_cores            = "4"
     disk_size            = "25"         // GB
     kubelet_lv           = "10"
-    docker_lv            = "39"
-    management_lv        = "100"
+    docker_lv            = "50"
+    management_lv        = "139"
     local_disk           = false
     memory               = "8192"
     network_speed        = "1000"
@@ -172,8 +172,8 @@ variable "va" {
     cpu_cores            = "4"
     disk_size            = "25"   // GB
     kubelet_lv           = "10"
-    docker_lv            = "39"
-    va_lv                = "100"
+    docker_lv            = "50"
+    va_lv                = "139"
     local_disk           = false
     memory               = "8192"
     network_speed        = "1000"

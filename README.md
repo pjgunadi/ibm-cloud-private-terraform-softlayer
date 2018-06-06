@@ -66,7 +66,7 @@ terraform apply -auto-approve
 ```
 **Note:** 
 - The data disk size is the sum of LV variables + 1 (e.g kubelet_lv + docker_lv + 1).
-- The block storage size that can be ordered from IBM Cloud Infrastructure, should match to one of the following: 20GB, 40GB, 80GB, 100GB, 250GB, 500GB, and size between 1,000GB to 12,000GB with increment of 1,000GB
+- The block storage size that can be ordered from IBM Cloud Infrastructure, should match to one of the following: 10GB, 20GB, 25GB, 30GB, 40GB, 50GB, 75GB, 100GB, 125GB, 150GB, 175GB, 200GB, 250GB, 300GB, 350GB, 400GB, 500GB, 750GB, 1TB, 1.5TB, and 2TB.
 
 ## ICP and Gluster Provisioning Module
 The ICP and GlusterFS Installation is performed by [ICP Provisioning module](https://github.com/pjgunadi/terraform-module-icp-deploy) 
