@@ -365,7 +365,7 @@
       "label": "Install Kibana",
       "description": "Install Kibana Flag",
       "default": "false",
-      "hidden": false,
+      "hidden": true,
       "immutable": false,
       "required": true,
       "secured": false,
