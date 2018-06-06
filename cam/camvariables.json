@@ -212,7 +212,7 @@
       "name": "va",
       "label": "VA Node",
       "description": "VA Node Informations",
-      "default": {"nodes": "0", "name": "va", "cpu_cores": "4", "disk_size":"25","kubelet_lv":"10","docker_lv":"39","va_lv":"100","local_disk":false,"memory":"8192","network_speed":"1000","private_network_only":false,"hourly_billing":true },
+      "default": {"nodes": "0", "name": "va", "cpu_cores": "4", "disk_size":"100","kubelet_lv":"10","docker_lv":"39","va_lv":"100","local_disk":false,"memory":"8192","network_speed":"1000","private_network_only":false,"hourly_billing":true },
       "hidden": false,
       "immutable": false,
       "required": true,
