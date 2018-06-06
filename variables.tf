@@ -93,6 +93,10 @@ variable "disable_management" {
   default = ["istio", "custom-metrics-adapter"]
 }
 
+variable "kibana_install" {
+  default = "false"
+}
+
 variable "gluster_volume_type" {
   default = "none"
 }

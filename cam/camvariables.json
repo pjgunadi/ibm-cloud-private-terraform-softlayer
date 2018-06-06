@@ -359,7 +359,29 @@
       "secured": false,
       "type": "list",
       "group_name": "icp_parameters"
-    },    
+    },  
+    {
+      "name": "kibana_install",
+      "label": "Install Kibana",
+      "description": "Install Kibana Flag",
+      "default": "false",
+      "hidden": false,
+      "immutable": false,
+      "required": true,
+      "secured": false,
+      "type": "string",
+      "options": [
+        {
+          "value": "false",
+          "label": "False"
+        },
+        {
+            "value": "true",
+            "label": "True"
+        }
+      ],
+      "group_name": "icp_parameters"
+    },      
     {
       "name": "icp_source_server",
       "label": "ICP Source Server",

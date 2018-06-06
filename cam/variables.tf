@@ -97,6 +97,10 @@ variable "gluster_volume_type" {
   default = "none"
 }
 
+variable "kibana_install" {
+  default = "false"
+}
+
 variable "heketi_admin_pwd" {
   default = "none"
 }
