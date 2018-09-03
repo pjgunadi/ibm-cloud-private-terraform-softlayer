@@ -280,7 +280,7 @@ resource "ibm_compute_vm_instance" "proxy" {
   }
   provisioner "local-exec" {
     when    = "destroy"
-    command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.icp_boot_node_ip} \"chmod +x /tmp/delete_node.sh; /tmp/delete_node.sh ${var.icp_version} ${self.ipv4_address_private}\"; echo done"
+    command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.icp_boot_node_ip} \"chmod +x /tmp/delete_node.sh; /tmp/delete_node.sh ${var.icp_version} ${self.ipv4_address_private} proxy\"; echo done"
   }
 }
 
@@ -336,7 +336,7 @@ resource "ibm_compute_vm_instance" "management" {
   }
   provisioner "local-exec" {
     when    = "destroy"
-    command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.icp_boot_node_ip} \"chmod +x /tmp/delete_node.sh; /tmp/delete_node.sh ${var.icp_version} ${self.ipv4_address_private}\"; echo done"
+    command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.icp_boot_node_ip} \"chmod +x /tmp/delete_node.sh; /tmp/delete_node.sh ${var.icp_version} ${self.ipv4_address_private} management\"; echo done"
   }
 }
 
@@ -433,7 +433,7 @@ resource "ibm_compute_vm_instance" "worker" {
   }
   provisioner "local-exec" {
     when    = "destroy"
-    command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.icp_boot_node_ip} \"chmod +x /tmp/delete_node.sh; /tmp/delete_node.sh ${var.icp_version} ${self.ipv4_address_private}\"; echo done"
+    command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.icp_boot_node_ip} \"chmod +x /tmp/delete_node.sh; /tmp/delete_node.sh ${var.icp_version} ${self.ipv4_address_private} worker\"; echo done"
   }
 }
 

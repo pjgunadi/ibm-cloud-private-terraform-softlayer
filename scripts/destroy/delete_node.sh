@@ -3,11 +3,19 @@ DefaultOrg="ibmcom"
 DefaultRepo="icp-inception"
 ip=$2
 
-if [ -z "$3" ]; then
+#Node Type List
+NODETYPE=$3
+if [ "$NODETYPE" == "" ]; then
+  NODETYPE="worker"
+fi
+
+if [ -z "$4" ]; then
   ICPDIR=/opt/ibm/cluster
 else
-  ICPDIR=$3
+  ICPDIR=$4
 fi
+
+NODELIST=${ICPDIR}/${NODETYPE}list.txt
 
 # Populates globals $org $repo $tag
 function parse_icpversion() {
@@ -46,3 +54,4 @@ docker run -e LICENSE=accept --net=host -v "$ICPDIR":/installer/cluster $org/$re
 $kubectl delete node $ip
 sudo sed -i "/^$ip.*$/d" /etc/hosts
 sudo sed -i "/^$ip.*$/d" /opt/ibm/cluster/hosts
+sed -i-$(date +%Y%m%dT%H%M%S) "s/$ip//;s/,*$//;s/,,/,/;s/^,//" $NODELIST
