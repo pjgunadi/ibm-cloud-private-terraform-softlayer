@@ -378,6 +378,23 @@ resource "ibm_compute_vm_instance" "va" {
       "chmod +x /tmp/createfs.sh; sudo /tmp/createfs.sh",
     ]
   }
+
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "cat > ${var.ssh_key_name} <<EOL\n${tls_private_key.ssh.private_key_pem}\nEOL"
+  }
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "chmod 600 ${var.ssh_key_name}"
+  }
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "scp -i ${var.ssh_key_name} ${local.ssh_options} ${path.module}/scripts/destroy/delete_node.sh ${var.ssh_user}@${local.icp_boot_node_ip}:/tmp/"
+  }
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "ssh -i ${var.ssh_key_name} ${local.ssh_options} ${var.ssh_user}@${local.icp_boot_node_ip} \"chmod +x /tmp/delete_node.sh; /tmp/delete_node.sh ${var.icp_version} ${self.ipv4_address_private} va\"; echo done"
+  }
 }
 
 # Create Worker Node
