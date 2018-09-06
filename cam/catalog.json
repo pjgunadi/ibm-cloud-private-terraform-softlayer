@@ -1,7 +1,7 @@
 {
     "name": "ICP deployment in IBM Cloud Infrastructure",
     "description": "IBM Cloud Private Deployment in IBM Cloud Infrastructure",
-    "version": "2.1.0.3",
+    "version": "3.1.0",
     "imageUrl": "",
     "image": "",
     "type": "prebuilt",
@@ -33,7 +33,7 @@
         },
         {
           "title": "Template version",
-          "description": "V0.3"
+          "description": "V0.3.1"
         },
         {
           "title": "Operating systems supported",
