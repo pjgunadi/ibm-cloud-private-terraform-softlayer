@@ -93,6 +93,16 @@ variable "disable_management" {
   default = ["istio", "custom-metrics-adapter"]
 }
 
+variable "management_services" {
+  type = "map"
+  default = {
+    istio = "disabled"
+    vulnerability-advisor = "disabled"
+    storage-glusterfs = "disabled"
+    storage-minio = "disabled"
+  }
+}
+
 variable "kibana_install" {
   default = "false"
 }

@@ -15,6 +15,12 @@ install_gluster = true              #Install Gluster Flag
 gluster_volume_type = "none"        #Gluster Volume Type. Sample: none, replicate:3, disperse:4:2
 heketi_admin_pwd = "your-password"  #Heketi API admin password
 disable_management = ["istio", "custom-metrics-adapter"] #Default Disabled management component v2.1.0.3
+management_services = {             #Default Disabled management component v3.1.0
+  istio = "disabled"
+  vulnerability-advisor = "disabled"
+  storage-glusterfs = "disabled"
+  storage-minio = "disabled"
+}
 master = {
     nodes       = "1"               #Number of Master Node. Minimum: 1, Maximum: 1 for ICP Community edition
     name        = "master"

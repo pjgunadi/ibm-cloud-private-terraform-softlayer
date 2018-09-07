@@ -555,13 +555,19 @@ module "icpprovision" {
     "ansible_user"                 = "${var.ssh_user}"
     "ansible_become"               = "${var.ssh_user == "root" ? false : true}"
     "default_admin_password"       = "${var.icpadmin_password}"
-    "calico_ipip_enabled"          = "true"
-    "docker_log_max_size"          = "10m"
+    #"calico_ipip_enabled"          = "true"
+    "docker_log_max_size"          = "100m"
     "docker_log_max_file"          = "10"
     "cluster_lb_address"           = "${ibm_compute_vm_instance.master.0.ipv4_address}"
     "proxy_lb_address"             = "${element(split(",",var.proxy["nodes"] == 0 ? join(",",ibm_compute_vm_instance.master.*.ipv4_address) : join(",",ibm_compute_vm_instance.proxy.*.ipv4_address)),0)}"
-    "disabled_management_services" = ["${split(",",var.va["nodes"] != 0 ? join(",",var.disable_management) : join(",",concat(list("vulnerability-advisor"),var.disable_management)))}"]
+    #"disabled_management_services" = ["${split(",",var.va["nodes"] != 0 ? join(",",var.disable_management) : join(",",concat(list("vulnerability-advisor"),var.disable_management)))}"]
 
+    "management_services" = {
+      "istio" = "${var.management_services["istio"]}"
+      "vulnerability-advisor" = "${var.va["nodes"] != 0 ? var.management_services["vulnerability-advisor"] : "disabled"}"
+      "storage-glusterfs" = "${var.management_services["storage-glusterfs"]}"
+      "storage-minio" = "${var.management_services["storage-minio"]}"
+    }
     #"kibana_install"               = "${var.kibana_install}"
 
     #"cluster_access_ip"        = "${element(ibm_compute_vm_instance.master.*.ipv4_address, 0)}"

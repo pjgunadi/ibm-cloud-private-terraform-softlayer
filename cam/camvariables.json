@@ -357,13 +357,25 @@
       "label": "Disable Management",
       "description": "Disable Management Service",
       "default": ["istio", "custom-metrics-adapter"],
-      "hidden": false,
+      "hidden": true,
       "immutable": false,
       "required": true,
       "secured": false,
       "type": "list",
       "group_name": "icp_parameters"
     },  
+    {
+      "name": "management_services",
+      "label": "Management Services",
+      "description": "Management Services",
+      "default": {"istio": "disabled", "vulnerability-advisor": "disabled", "storage-glusterfs": "disabled", "storage-minio":"disabled"},
+      "hidden": false,
+      "immutable": false,
+      "required": false,
+      "secured": false,
+      "type": "map",
+      "group_name": "image_parameters"
+    },    
     {
       "name": "kibana_install",
       "label": "Install Kibana",
