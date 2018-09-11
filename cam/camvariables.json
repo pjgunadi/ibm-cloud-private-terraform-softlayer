@@ -374,7 +374,7 @@
       "required": false,
       "secured": false,
       "type": "map",
-      "group_name": "image_parameters"
+      "group_name": "icp_parameters"
     },    
     {
       "name": "kibana_install",
