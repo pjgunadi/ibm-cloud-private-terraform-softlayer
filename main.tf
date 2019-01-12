@@ -519,7 +519,7 @@ resource "null_resource" "copy_delete_gluster" {
 }
 
 module "icpprovision" {
-  source = "github.com/pjgunadi/terraform-module-icp-deploy?ref=3.1.0"
+  source = "github.com/pjgunadi/terraform-module-icp-deploy?ref=3.1.1"
 
   //Connection IPs
   #icp-ips   = "${concat(ibm_compute_vm_instance.master.*.ipv4_address, ibm_compute_vm_instance.proxy.*.ipv4_address, ibm_compute_vm_instance.management.*.ipv4_address, ibm_compute_vm_instance.va.*.ipv4_address, ibm_compute_vm_instance.worker.*.ipv4_address)}"
