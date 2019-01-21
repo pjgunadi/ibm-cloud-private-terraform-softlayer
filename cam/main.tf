@@ -595,4 +595,8 @@ module "icpprovision" {
 
   ssh_user = "${var.ssh_user}"
   ssh_key  = "${tls_private_key.ssh.private_key_pem}"
+
+  bastion_host = "${local.icp_boot_node_ip}"
+  bastion_user = "${var.ssh_user}"
+  bastion_private_key = "${tls_private_key.ssh.private_key_pem}"
 }
