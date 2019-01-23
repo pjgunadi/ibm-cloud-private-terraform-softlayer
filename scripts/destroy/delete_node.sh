@@ -45,9 +45,10 @@ kubectl="sudo docker run -e LICENSE=accept --net=host -v $ICPDIR:/installer/clus
   
 $kubectl config set-cluster cfc-cluster --server=https://localhost:8001 --insecure-skip-tls-verify=true 
 $kubectl config set-context kubectl --cluster=cfc-cluster 
-$kubectl config set-credentials user --client-certificate=/installer/cluster/cfc-certs/kubecfg.crt --client-key=/installer/cluster/cfc-certs/kubecfg.key 
+$kubectl config set-credentials user --client-certificate=/installer/cluster/cfc-certs/kubernetes/kubecfg.crt --client-key=/installer/cluster/cfc-certs/kubernetes/kubecfg.key 
 $kubectl config set-context kubectl --user=user 
 $kubectl config use-context kubectl
+#cloudctl login -a https://localhost:8443 -u ${var.icpuser} -p ${var.icppasword} -c id-${var.cluster_name}-account -n default --skip-ssl-validation
 #$kubectl drain $ip --grace-period=300
 $kubectl drain $ip --force
 docker run -e LICENSE=accept --net=host -v "$ICPDIR":/installer/cluster $org/$repo:$tag uninstall -l $ip
