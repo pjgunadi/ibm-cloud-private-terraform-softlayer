@@ -131,10 +131,13 @@ locals {
   master_datadisk     = "${var.master["kubelet_lv"] + var.master["docker_lv"] + var.master["registry_lv"] + var.master["etcd_lv"] + var.master["management_lv"] + 1}"
   proxy_datadisk      = "${var.proxy["kubelet_lv"] + var.proxy["docker_lv"] + 1}"
   management_datadisk = "${var.management["kubelet_lv"] + var.management["docker_lv"] + var.management["management_lv"] + 1}"
+  va_datadisk = "${var.va["kubelet_lv"] + var.va["docker_lv"] + var.va["va_lv"] + 1}"
   worker_datadisk     = "${var.worker["kubelet_lv"] + var.worker["docker_lv"] + 1}"
+  nfs_datadisk     = "${var.nfs["nfs_lv"] + 1}"
+  flag_usenfs = "${var.master["nodes"] > 1 && var.nfs["nodes"] >= 1 ? 1 : 0}"
 
   #Destroy nodes variables
-  icp_boot_node_ip = "${ibm_compute_vm_instance.master.0.ipv4_address}"
+  icp_boot_node_ip = "${ibm_compute_vm_instance.boot.0.ipv4_address}"
   heketi_ip        = "${ibm_compute_vm_instance.gluster.0.ipv4_address}"
   ssh_options      = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 }
@@ -148,6 +151,7 @@ data "template_file" "createfs_master" {
     etcd_lv       = "${var.master["etcd_lv"]}"
     registry_lv   = "${var.master["registry_lv"]}"
     management_lv = "${var.master["management_lv"]}"
+    flag_usenfs   = "${local.flag_usenfs}"
   }
 }
 
@@ -189,6 +193,202 @@ data "template_file" "createfs_worker" {
   }
 }
 
+#NFS Templates
+data "template_file" "createfs_nfs" {
+  template = "${file("${path.module}/scripts/createfs_nfs.sh.tpl")}"
+
+  vars {
+    nfs_lv  = "${var.nfs["nfs_lv"]}"
+  }
+}
+
+data "template_file" "bootstrap_shared_storage" {
+  template = "${file("${path.module}/scripts/bootstrap_shared_storage.tpl")}"
+
+  vars {
+    flag_usenfs = "${local.flag_usenfs}"
+  }
+}
+
+data "template_file" "mount_nfs" {
+  template = "${file("${path.module}/scripts/mount_nfs.tpl")}"
+
+  vars {
+    nfs_ip       = "${local.flag_usenfs < 1 ? "" : element(split(",", join(",", ibm_compute_vm_instance.nfs.*.ipv4_address_private)), 0)}"
+    flag_usenfs  = "${local.flag_usenfs}"
+  }
+}
+
+#HAProxy Templates
+data "template_file" "haproxy_master" {
+   count     = "${var.master["nodes"]}"
+   template  = "      server master_server$${idx} $${machine}"
+
+   vars {
+     idx     = "${count.index + 1}"
+     machine = "${element(ibm_compute_vm_instance.master.*.ipv4_address_private, count.index)}"
+   }
+}
+
+data "template_file" "haproxy_proxy" {
+   count     = "${var.proxy["nodes"]}"
+   template  = "      server proxy_server$${idx} $${machine}"
+
+   vars {
+     idx     = "${count.index + 1}"
+     machine = "${element(ibm_compute_vm_instance.proxy.*.ipv4_address_private, count.index)}"
+   }
+}
+
+data "template_file" "haproxy" {
+  template = "${file("${path.module}/scripts/haproxy.cfg.tpl")}"
+
+  vars {
+    k8s_api       = "${join(":8001\n",data.template_file.haproxy_master.*.rendered)}:8001\n"
+    dashboard     = "${join(":8443\n",data.template_file.haproxy_master.*.rendered)}:8443\n"
+    auth          = "${join(":9443\n",data.template_file.haproxy_master.*.rendered)}:9443\n"
+    image_manager = "${join(":8600\n",data.template_file.haproxy_master.*.rendered)}:8600\n"
+    registry      = "${join(":8500\n",data.template_file.haproxy_master.*.rendered)}:8500\n"
+    cam           = "${var.proxy["nodes"] > 0 ? join(":30000\n",data.template_file.haproxy_proxy.*.rendered) : join(":30000\n",data.template_file.haproxy_master.*.rendered)}:30000\n"
+    proxy_http    = "${var.proxy["nodes"] > 0 ? join(":80\n",data.template_file.haproxy_proxy.*.rendered) : join(":80\n",data.template_file.haproxy_master.*.rendered)}:80\n"
+    proxy_https   = "${var.proxy["nodes"] > 0 ? join(":443\n",data.template_file.haproxy_proxy.*.rendered) : join(":443\n",data.template_file.haproxy_master.*.rendered)}:443\n"
+  }
+}
+
+#Create HAProxy Node
+resource "ibm_compute_vm_instance" "haproxy" {
+  lifecycle {
+    ignore_changes = ["private_vlan_id"]
+  }
+
+  count                = "${var.haproxy["nodes"]}"
+  datacenter           = "${var.datacenter}"
+  domain               = "${var.domain}"
+  hostname             = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.haproxy["name"]),count.index + 1) }"
+  os_reference_code    = "${var.os_reference}"
+  cores                = "${var.haproxy["cpu_cores"]}"
+  memory               = "${var.haproxy["memory"]}"
+  disks                = ["${var.haproxy["disk_size"]}"]
+  local_disk           = "${var.haproxy["local_disk"]}"
+  network_speed        = "${var.haproxy["network_speed"]}"
+  hourly_billing       = "${var.haproxy["hourly_billing"]}"
+  private_network_only = "${var.haproxy["private_network_only"]}"
+  ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
+
+  #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
+  #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}","${ibm_security_group.public_inbound_haproxy.id}","${ibm_security_group.public_inbound_proxy.id}"]
+
+  connection {
+    user        = "${var.ssh_user}"
+    private_key = "${tls_private_key.ssh.private_key_pem}"
+    host        = "${self.ipv4_address}"
+  }
+
+  provisioner "file" {
+    content     = "${data.template_file.haproxy.rendered}"
+    destination = "~/haproxy.cfg"
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/scripts/create_nfs.sh"
+    destination = "/tmp/create_nfs.sh"
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/scripts/download_docker.sh"
+    destination = "/tmp/download_docker.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/create_nfs.sh; /tmp/create_nfs.sh",
+      "chmod +x /tmp/download_docker.sh; sudo /tmp/download_docker.sh \"${var.icp_source_server}\" \"${var.icp_source_user}\" \"${var.icp_source_password}\" \"${var.icp_docker_path}\" \"/tmp/${basename(var.icp_docker_path)}\"",
+      "sudo -H docker run -d --name icp_haproxy -v ~/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro -p 8001:8001 -p 8443:8443 -p 9443:9443 -p 8500:8500 -p 8600:8600 -p 80:80 -p 443:443 -p 30000:30000 --restart=unless-stopped haproxy",
+    ]
+  }
+}
+
+#Create NFS Node
+resource "ibm_compute_vm_instance" "nfs" {
+  lifecycle {
+    ignore_changes = ["private_vlan_id"]
+  }
+
+  count                = "${local.flag_usenfs}"
+  datacenter           = "${var.datacenter}"
+  domain               = "${var.domain}"
+  hostname             = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.nfs["name"]),count.index + 1) }"
+  os_reference_code    = "${var.os_reference}"
+  cores                = "${var.nfs["cpu_cores"]}"
+  memory               = "${var.nfs["memory"]}"
+  disks                = ["${var.nfs["disk_size"]}", "${local.nfs_datadisk}"]
+  local_disk           = "${var.nfs["local_disk"]}"
+  network_speed        = "${var.nfs["network_speed"]}"
+  hourly_billing       = "${var.nfs["hourly_billing"]}"
+  private_network_only = "${var.nfs["private_network_only"]}"
+  ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
+
+  #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
+  #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}","${ibm_security_group.public_inbound_nfs.id}","${ibm_security_group.public_inbound_proxy.id}"]
+
+  connection {
+    user        = "${var.ssh_user}"
+    private_key = "${tls_private_key.ssh.private_key_pem}"
+    host        = "${self.ipv4_address}"
+  }
+  provisioner "file" {
+    content     = "${data.template_file.createfs_nfs.rendered}"
+    destination = "/tmp/createfs.sh"
+  }
+  provisioner "file" {
+    content     = "${data.template_file.bootstrap_shared_storage.rendered}"
+    destination = "/tmp/bootstrap_shared_storage.sh"
+  }
+  provisioner "file" {
+    source      = "${path.module}/scripts/create_nfs.sh"
+    destination = "/tmp/create_nfs.sh"
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/createfs.sh; sudo /tmp/createfs.sh",
+      "chmod +x /tmp/create_nfs.sh; /tmp/create_nfs.sh",
+      "chmod +x /tmp/bootstrap_shared_storage.sh; /tmp/bootstrap_shared_storage.sh",
+    ]
+  }
+}
+
+#Create Boot Node
+resource "ibm_compute_vm_instance" "boot" {
+  lifecycle {
+    ignore_changes = ["private_vlan_id"]
+  }
+
+  count                = "${var.boot["nodes"]}"
+  datacenter           = "${var.datacenter}"
+  domain               = "${var.domain}"
+  hostname             = "${format("%s-%s-%01d", lower(var.instance_prefix), lower(var.boot["name"]),count.index + 1) }"
+  os_reference_code    = "${var.os_reference}"
+  cores                = "${var.boot["cpu_cores"]}"
+  memory               = "${var.boot["memory"]}"
+  disks                = ["${var.boot["disk_size"]}"]
+  local_disk           = "${var.boot["local_disk"]}"
+  network_speed        = "${var.boot["network_speed"]}"
+  hourly_billing       = "${var.boot["hourly_billing"]}"
+  private_network_only = "${var.boot["private_network_only"]}"
+  ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+
+  #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
+  #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}","${ibm_security_group.public_inbound_boot.id}","${ibm_security_group.public_inbound_proxy.id}"]
+
+  connection {
+    user        = "${var.ssh_user}"
+    private_key = "${tls_private_key.ssh.private_key_pem}"
+    host        = "${self.ipv4_address}"
+  }
+}
+
 # Create Master Node
 resource "ibm_compute_vm_instance" "master" {
   lifecycle {
@@ -208,6 +408,7 @@ resource "ibm_compute_vm_instance" "master" {
   hourly_billing       = "${var.master["hourly_billing"]}"
   private_network_only = "${var.master["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}","${ibm_security_group.public_inbound_master.id}","${ibm_security_group.public_inbound_proxy.id}"]
@@ -221,9 +422,19 @@ resource "ibm_compute_vm_instance" "master" {
     content     = "${data.template_file.createfs_master.rendered}"
     destination = "/tmp/createfs.sh"
   }
+  provisioner "file" {
+    content     = "${data.template_file.mount_nfs.rendered}"
+    destination = "/tmp/mount_nfs.sh"
+  }
+  provisioner "file" {
+    source      = "${path.module}/scripts/create_nfs.sh"
+    destination = "/tmp/create_nfs.sh"
+  }  
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/createfs.sh; sudo /tmp/createfs.sh",
+      "chmod +x /tmp/create_nfs.sh; /tmp/create_nfs.sh",
+      "chmod +x /tmp/mount_nfs.sh; /tmp/mount_nfs.sh",      
     ]
   }
 }
@@ -247,7 +458,7 @@ resource "ibm_compute_vm_instance" "proxy" {
   hourly_billing       = "${var.proxy["hourly_billing"]}"
   private_network_only = "${var.proxy["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.master.0.private_vlan_id}"
+  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}","${ibm_security_group.public_inbound_proxy.id}"]
@@ -303,7 +514,7 @@ resource "ibm_compute_vm_instance" "management" {
   hourly_billing       = "${var.management["hourly_billing"]}"
   private_network_only = "${var.management["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.master.0.private_vlan_id}"
+  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}"]
@@ -359,7 +570,7 @@ resource "ibm_compute_vm_instance" "va" {
   hourly_billing       = "${var.va["hourly_billing"]}"
   private_network_only = "${var.va["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.master.0.private_vlan_id}"
+  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}"]
@@ -416,7 +627,7 @@ resource "ibm_compute_vm_instance" "worker" {
   hourly_billing       = "${var.worker["hourly_billing"]}"
   private_network_only = "${var.worker["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.master.0.private_vlan_id}"
+  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}"]
@@ -469,7 +680,7 @@ resource "ibm_compute_vm_instance" "gluster" {
   hourly_billing       = "${var.gluster["hourly_billing"]}"
   private_network_only = "${var.gluster["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.master.0.private_vlan_id}"
+  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}"]
@@ -518,14 +729,48 @@ resource "null_resource" "copy_delete_gluster" {
   }
 }
 
+#Update NFS Server
+data "template_file" "update_nfs_server" {
+  template = "${file("${path.module}/scripts/update_nfs_server.tpl")}"
+
+  vars {
+    master_ips  = "${join(" ", ibm_compute_vm_instance.master.*.ipv4_address_private)}"
+    flag_usenfs = "${local.flag_usenfs}"
+  }
+}
+
+locals {
+  nfs_ip = "${local.flag_usenfs < 1 ? "" : element(split(",", join(",", ibm_compute_vm_instance.nfs.*.ipv4_address)),0)}"
+}
+resource "null_resource" "update_nfs_server" {
+  count = "${local.flag_usenfs}"
+  connection {
+    host        = "${local.nfs_ip}"
+    user        = "${var.ssh_user}"
+    private_key = "${tls_private_key.ssh.private_key_pem}"
+  }
+
+  provisioner "file" {
+    content     = "${data.template_file.update_nfs_server.rendered}"
+    destination = "/tmp/update_nfs_server.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/update_nfs_server.sh; /tmp/update_nfs_server.sh",
+    ]
+  }
+}
+
 module "icpprovision" {
-  source = "github.com/pjgunadi/terraform-module-icp-deploy?ref=3.1.1"
+  # source = "github.com/pjgunadi/terraform-module-icp-deploy?ref=3.1.1"
+  source = "github.com/pjgunadi/terraform-module-icp-deploy?ref=test"
 
   //Connection IPs
   #icp-ips   = "${concat(ibm_compute_vm_instance.master.*.ipv4_address, ibm_compute_vm_instance.proxy.*.ipv4_address, ibm_compute_vm_instance.management.*.ipv4_address, ibm_compute_vm_instance.va.*.ipv4_address, ibm_compute_vm_instance.worker.*.ipv4_address)}"
-  icp-ips = "${concat(ibm_compute_vm_instance.master.*.ipv4_address)}"
-
-  boot-node = "${element(ibm_compute_vm_instance.master.*.ipv4_address, 0)}"
+  #icp-ips = "${concat(ibm_compute_vm_instance.boot.*.ipv4_address)}"
+  icp-ips = ["${local.icp_boot_node_ip}"]
+  boot-node = "${local.icp_boot_node_ip}"
 
   //Configuration IPs
   icp-master     = ["${ibm_compute_vm_instance.master.*.ipv4_address_private}"]
@@ -535,7 +780,8 @@ module "icpprovision" {
   icp-va         = ["${split(",",var.va["nodes"] == 0 ? "" : join(",",ibm_compute_vm_instance.va.*.ipv4_address_private))}"]
 
   # Workaround for terraform issue #10857
-  cluster_size    = "${var.master["nodes"]}"
+  cluster_size    = "${var.boot["nodes"]}"
+  master_size     = "${var.master["nodes"]}"
   worker_size     = "${var.worker["nodes"]}"
   proxy_size      = "${var.proxy["nodes"]}"
   management_size = "${var.management["nodes"]}"
@@ -545,6 +791,7 @@ module "icpprovision" {
   icp_source_user     = "${var.icp_source_user}"
   icp_source_password = "${var.icp_source_password}"
   image_file          = "${var.icp_source_path}"
+  docker_installer    = "${var.icp_docker_path}"
 
   icp-version = "${var.icp_version}"
 
@@ -558,8 +805,8 @@ module "icpprovision" {
     #"calico_ipip_enabled"          = "true"
     "docker_log_max_size"          = "100m"
     "docker_log_max_file"          = "10"
-    "cluster_lb_address"           = "${ibm_compute_vm_instance.master.0.ipv4_address}"
-    "proxy_lb_address"             = "${element(split(",",var.proxy["nodes"] == 0 ? join(",",ibm_compute_vm_instance.master.*.ipv4_address) : join(",",ibm_compute_vm_instance.proxy.*.ipv4_address)),0)}"
+    "cluster_lb_address"           = "${var.haproxy["nodes"] == 0 ? ibm_compute_vm_instance.master.0.ipv4_address : element(split(",", join(",", ibm_compute_vm_instance.haproxy.*.ipv4_address)),0)}"
+    "proxy_lb_address"             = "${var.haproxy["nodes"] == 0 ? element(split(",",var.proxy["nodes"] == 0 ? join(",",ibm_compute_vm_instance.master.*.ipv4_address) : join(",",ibm_compute_vm_instance.proxy.*.ipv4_address)),0) : element(split(",", join(",", ibm_compute_vm_instance.haproxy.*.ipv4_address)),0)}"
     #"disabled_management_services" = ["${split(",",var.va["nodes"] != 0 ? join(",",var.disable_management) : join(",",concat(list("vulnerability-advisor"),var.disable_management)))}"]
     
     "management_services" = {
@@ -568,11 +815,6 @@ module "icpprovision" {
       "storage-glusterfs" = "${var.management_services["storage-glusterfs"]}"
       "storage-minio" = "${var.management_services["storage-minio"]}"
     }
-    #"kibana_install"               = "${var.kibana_install}"
-
-    #"cluster_access_ip"        = "${element(ibm_compute_vm_instance.master.*.ipv4_address, 0)}"
-    #"proxy_access_ip"          = "${element(ibm_compute_vm_instance.proxy.*.ipv4_address, 0)}"
-    #"proxy_access_ip" = "${element(ibm_compute_vm_instance.master.*.ipv4_address, 0)}" #combined proxy with master
   }
 
   #Gluster

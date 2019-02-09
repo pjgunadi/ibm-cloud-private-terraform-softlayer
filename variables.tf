@@ -45,7 +45,7 @@ variable "os_reference" {
 ##### ICP Instance details ######
 variable "icp_version" {
   description = "ICP Version"
-  default     = "2.1.0.3"
+  default     = "3.1.1"
 }
 
 variable "network_cidr" {
@@ -82,6 +82,10 @@ variable icp_source_password {
 }
 
 variable icp_source_path {
+  default = ""
+}
+
+variable "icp_docker_path" {
   default = ""
 }
 
@@ -219,6 +223,55 @@ variable "gluster" {
     cpu_cores            = "2"
     disk_size            = "25"      // GB
     glusterfs            = "100"
+    local_disk           = false
+    memory               = "2048"
+    network_speed        = "1000"
+    private_network_only = true
+    hourly_billing       = true
+  }
+}
+
+variable "nfs" {
+  type = "map"
+
+  default = {
+    nodes                = "1"
+    name                 = "nfs"
+    cpu_cores            = "2"
+    disk_size            = "25"      // GB
+    nfs_lv               = "299"
+    local_disk           = false
+    memory               = "2048"
+    network_speed        = "1000"
+    private_network_only = true
+    hourly_billing       = true
+  }
+}
+
+variable "boot" {
+  type = "map"
+
+  default = {
+    nodes                = "1"
+    name                 = "boot"
+    cpu_cores            = "2"
+    disk_size            = "100"      // GB
+    local_disk           = false
+    memory               = "4096"
+    network_speed        = "1000"
+    private_network_only = false
+    hourly_billing       = true
+  }
+}
+
+variable "haproxy" {
+  type = "map"
+
+  default = {
+    nodes                = "1"
+    name                 = "haproxy"
+    cpu_cores            = "2"
+    disk_size            = "25"      // GB
     local_disk           = false
     memory               = "2048"
     network_speed        = "1000"

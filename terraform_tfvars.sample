@@ -4,7 +4,7 @@ datacenter = "sng01"                #use one of SoftLayer Datacenter code
 ssh_key_name = "sl-key"             #name of ssh key to be created in SoftLayer
 ssh_user = "root"                   #OS username
 icpadmin_password = "your-password" #ICP admin password
-icp_version = "2.1.0.3"             #ICP Version. Samples: 2.1.0.3, 2.1.0.3-ee, ibmcom/icp-inception-amd64:3.1.0-ee
+icp_version = "3.1.1"               #ICP Version. Samples: 2.1.0.3, 2.1.0.3-ee, ibmcom/icp-inception-amd64:3.1.0-ee
 domain = "icp.demo"                 #OS Domain
 os_reference = "UBUNTU_16_64"       #OS Reference Code from SoftLayer: UBUNTU_16_64 or REDHAT_7_64
 instance_prefix = "icp"             #Instance Prefix
@@ -103,7 +103,45 @@ gluster = {
     private_network_only = false
     hourly_billing = true
 }
+nfs = {
+  nodes                = "1"
+  name                 = "nfs"
+  cpu_cores            = "2"
+  disk_size            = "25"      // GB
+  nfs_lv               = "299"
+  local_disk           = false
+  memory               = "4096"
+  network_speed        = "1000"
+  private_network_only = false
+  hourly_billing       = true
+}
+
+boot = {
+  nodes                = "1"
+  name                 = "boot"
+  cpu_cores            = "2"
+  disk_size            = "100"      // GB
+  local_disk           = false
+  memory               = "4096"
+  network_speed        = "1000"
+  private_network_only = false
+  hourly_billing       = true
+}
+
+haproxy = {
+  nodes                = "1"
+  name                 = "haproxy"
+  cpu_cores            = "2"
+  disk_size            = "25"      // GB
+  local_disk           = false
+  memory               = "2048"
+  network_speed        = "1000"
+  private_network_only = false
+  hourly_billing       = true
+}
+
 #icp_source_server="x.x.x.x"                    #SFTP Server for Enterprise Edition
 #icp_source_user="ftp-user"                     #SFTP Login user
 #icp_source_password="ftp-password"             #SFTP Login password
 #icp_source_path="path-to-icp-enterprise-file"  #Download file location in SFTP server
+icp_docker_path="path-to-icp-bundled-docker"    #Download file location in SFTP server
