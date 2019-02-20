@@ -206,6 +206,7 @@ variable "worker" {
     disk_size            = "25"     // GB
     kubelet_lv           = "10"
     docker_lv            = "89"
+    glusterfs            = "300"
     local_disk           = false
     memory               = "8192"
     network_speed        = "1000"

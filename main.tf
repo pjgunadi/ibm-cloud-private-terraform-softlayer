@@ -138,7 +138,8 @@ locals {
 
   #Destroy nodes variables
   icp_boot_node_ip = "${ibm_compute_vm_instance.boot.0.ipv4_address}"
-  heketi_ip        = "${ibm_compute_vm_instance.gluster.0.ipv4_address}"
+  heketi_ip        = "${var.gluster["nodes"] > 0 ? element(split(",", join(",", ibm_compute_vm_instance.gluster.*.ipv4_address)), 0) : ""}"
+  heketi_svc_ip    = "${var.gluster["nodes"] > 0 ? element(split(",", join(",", ibm_compute_vm_instance.gluster.*.ipv4_address_private)), 0) : ""}"
   ssh_options      = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 }
 
@@ -621,7 +622,7 @@ resource "ibm_compute_vm_instance" "worker" {
   os_reference_code    = "${var.os_reference}"
   cores                = "${var.worker["cpu_cores"]}"
   memory               = "${var.worker["memory"]}"
-  disks                = ["${var.worker["disk_size"]}", "${local.worker_datadisk}"]
+  disks                = ["${var.worker["disk_size"]}", "${local.worker_datadisk}", "${var.gluster["glusterfs"]}"]
   local_disk           = "${var.worker["local_disk"]}"
   network_speed        = "${var.worker["network_speed"]}"
   hourly_billing       = "${var.worker["hourly_billing"]}"
@@ -717,6 +718,8 @@ resource "null_resource" "copy_delete_node" {
 }
 
 resource "null_resource" "copy_delete_gluster" {
+  count = "${var.install_gluster ? 1 : 0}"
+  
   connection {
     host        = "${local.heketi_ip}"
     user        = "${var.ssh_user}"
@@ -825,8 +828,8 @@ module "icpprovision" {
   gluster_ips         = ["${ibm_compute_vm_instance.gluster.*.ipv4_address}"]
   gluster_svc_ips     = ["${ibm_compute_vm_instance.gluster.*.ipv4_address_private}"]
   device_name         = "/dev/xvdc"                                                   #update according to the device name provided by cloud provider
-  heketi_ip           = "${ibm_compute_vm_instance.gluster.0.ipv4_address}"
-  heketi_svc_ip       = "${ibm_compute_vm_instance.gluster.0.ipv4_address_private}"
+  heketi_ip           = "${local.heketi_ip}"
+  heketi_svc_ip       = "${local.heketi_svc_ip}"
   cluster_name        = "${var.cluster_name}.icp"
   gluster_volume_type = "${var.gluster_volume_type}"
   heketi_admin_pwd    = "${var.heketi_admin_pwd}"
