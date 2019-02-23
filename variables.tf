@@ -69,6 +69,17 @@ variable "install_gluster" {
   default = false
 }
 
+variable "calico_network" {
+  type = "map"
+  default = {
+    ipip_enabled  = "Always"
+    interface     = "can-reach={{ groups['master'][0] }}"
+    ipsec_enabled = false
+    subnets       = "[10.0.0.0/8]"
+    cipher_suite  = "aes128gcm16!"
+  }
+}
+
 variable icp_source_server {
   default = ""
 }

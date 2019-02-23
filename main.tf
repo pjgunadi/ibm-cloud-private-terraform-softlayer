@@ -766,8 +766,8 @@ resource "null_resource" "update_nfs_server" {
 }
 
 module "icpprovision" {
-  # source = "github.com/pjgunadi/terraform-module-icp-deploy?ref=3.1.1"
-  source = "github.com/pjgunadi/terraform-module-icp-deploy?ref=test"
+  source = "github.com/pjgunadi/terraform-module-icp-deploy?ref=3.1.2"
+  # source = "github.com/pjgunadi/terraform-module-icp-deploy?ref=test"
 
   //Connection IPs
   #icp-ips   = "${concat(ibm_compute_vm_instance.master.*.ipv4_address, ibm_compute_vm_instance.proxy.*.ipv4_address, ibm_compute_vm_instance.management.*.ipv4_address, ibm_compute_vm_instance.va.*.ipv4_address, ibm_compute_vm_instance.worker.*.ipv4_address)}"
@@ -805,7 +805,6 @@ module "icpprovision" {
     "ansible_user"                 = "${var.ssh_user}"
     "ansible_become"               = "${var.ssh_user == "root" ? false : true}"
     "default_admin_password"       = "${var.icpadmin_password}"
-    #"calico_ipip_enabled"          = "true"
     "docker_log_max_size"          = "100m"
     "docker_log_max_file"          = "10"
     "cluster_lb_address"           = "${var.haproxy["nodes"] == 0 ? ibm_compute_vm_instance.master.0.ipv4_address : element(split(",", join(",", ibm_compute_vm_instance.haproxy.*.ipv4_address)),0)}"
@@ -817,6 +816,14 @@ module "icpprovision" {
       "vulnerability-advisor" = "${var.va["nodes"] != 0 ? var.management_services["vulnerability-advisor"] : "disabled"}"
       "storage-glusterfs" = "${var.management_services["storage-glusterfs"]}"
       "storage-minio" = "${var.management_services["storage-minio"]}"
+    }
+    
+    "calico_ipip_enabled" = "${var.calico_network["ipip_enabled"]}"
+    "calico_ip_autodetection_method" = "${var.calico_network["interface"]}"
+    "ipsec_mesh" = {
+      "enable" = "${var.calico_network["ipsec_enabled"]}"
+      "subnets" = "${var.calico_network["ipsec_enabled"]}"
+      "cipher_suite" = "${var.calico_network["cipher_suite"]}"
     }
   }
 
