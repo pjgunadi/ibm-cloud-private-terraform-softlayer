@@ -81,10 +81,10 @@ variable "calico_network" {
 }
 
 variable "firewall_enabled" {
-  default = false
+  default = "false"
 }
 variable "auditlog_enabled" {
-  default = false
+  default = "false"
 }
 variable "etcd_extra_args" {
   default = []
