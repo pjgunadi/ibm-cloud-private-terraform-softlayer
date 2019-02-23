@@ -622,7 +622,7 @@ resource "ibm_compute_vm_instance" "worker" {
   os_reference_code    = "${var.os_reference}"
   cores                = "${var.worker["cpu_cores"]}"
   memory               = "${var.worker["memory"]}"
-  disks                = ["${var.worker["disk_size"]}", "${local.worker_datadisk}", "${var.gluster["glusterfs"]}"]
+  disks                = ["${var.worker["disk_size"]}", "${local.worker_datadisk}"]
   local_disk           = "${var.worker["local_disk"]}"
   network_speed        = "${var.worker["network_speed"]}"
   hourly_billing       = "${var.worker["hourly_billing"]}"
@@ -795,6 +795,7 @@ module "icpprovision" {
   icp_source_password = "${var.icp_source_password}"
   image_file          = "${var.icp_source_path}"
   docker_installer    = "${var.icp_docker_path}"
+  firewall_enabled    = "${var.firewall_enabled}"
 
   icp-version = "${var.icp_version}"
 
@@ -809,8 +810,12 @@ module "icpprovision" {
     "docker_log_max_file"          = "10"
     "cluster_lb_address"           = "${var.haproxy["nodes"] == 0 ? ibm_compute_vm_instance.master.0.ipv4_address : element(split(",", join(",", ibm_compute_vm_instance.haproxy.*.ipv4_address)),0)}"
     "proxy_lb_address"             = "${var.haproxy["nodes"] == 0 ? element(split(",",var.proxy["nodes"] == 0 ? join(",",ibm_compute_vm_instance.master.*.ipv4_address) : join(",",ibm_compute_vm_instance.proxy.*.ipv4_address)),0) : element(split(",", join(",", ibm_compute_vm_instance.haproxy.*.ipv4_address)),0)}"
-    #"disabled_management_services" = ["${split(",",var.va["nodes"] != 0 ? join(",",var.disable_management) : join(",",concat(list("vulnerability-advisor"),var.disable_management)))}"]
-    
+    "firewall_enabled"             = "${var.firewall_enabled}"
+    "auditlog_enabled"             = "${var.auditlog_enabled}"
+    "etcd_extra_args"              = "${var.etcd_extra_args}"
+    "kube_apiserver_extra_args"    = "${var.kube_apiserver_extra_args}"
+    "kubelet_extra_args"           = "${var.kubelet_extra_args}"
+
     "management_services" = {
       "istio" = "${var.management_services["istio"]}"
       "vulnerability-advisor" = "${var.va["nodes"] != 0 ? var.management_services["vulnerability-advisor"] : "disabled"}"
@@ -822,7 +827,7 @@ module "icpprovision" {
     "calico_ip_autodetection_method" = "${var.calico_network["interface"]}"
     "ipsec_mesh" = {
       "enable" = "${var.calico_network["ipsec_enabled"]}"
-      "subnets" = "${var.calico_network["subnets"]}"
+      "subnets" = ["${var.calico_network["subnets"]}"]
       "cipher_suite" = "${var.calico_network["cipher_suite"]}"
     }
   }

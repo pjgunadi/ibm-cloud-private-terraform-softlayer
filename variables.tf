@@ -80,6 +80,21 @@ variable "calico_network" {
   }
 }
 
+variable "firewall_enabled" {
+  default = false
+}
+variable "auditlog_enabled" {
+  default = false
+}
+variable "etcd_extra_args" {
+  default = []
+}
+variable "kube_apiserver_extra_args" {
+  default = []
+}
+variable "kubelet_extra_args" {
+  default = []
+}
 variable icp_source_server {
   default = ""
 }
