@@ -822,7 +822,7 @@ module "icpprovision" {
     "calico_ip_autodetection_method" = "${var.calico_network["interface"]}"
     "ipsec_mesh" = {
       "enable" = "${var.calico_network["ipsec_enabled"]}"
-      "subnets" = "${var.calico_network["ipsec_enabled"]}"
+      "subnets" = "${var.calico_network["subnets"]}"
       "cipher_suite" = "${var.calico_network["cipher_suite"]}"
     }
   }
