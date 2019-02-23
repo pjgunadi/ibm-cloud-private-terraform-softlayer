@@ -25,7 +25,7 @@ calico_network = {
   ipip_enabled  = "Always"          #ICP 3.1.1 true/false , ICP 3.1.2 Always/Never
   interface     = "interface=eth0"  #Network Interface for Calico. Use one of these prefix "can-reach=" or "interface=" Samples: "can-reach={{ groups['master'][0] }}", "interface=eth.*,ens.*"
   ipsec_enabled = false             #When Calico IPSec Mesh is enabled, separate interface is required for management plane and data plane
-  subnets       = "[10.0.0.0/8]"    #Subnets for IPSec Mesh only when ipsec_enabled=true
+  subnets       = "10.0.0.0/8"    #Subnets for IPSec Mesh only when ipsec_enabled=true
   cipher_suite  = "aes_gcm_c128"    #For Redhat: aes_gcm_c128, Ubuntu: aes128gcm16!
 }
 master = {
