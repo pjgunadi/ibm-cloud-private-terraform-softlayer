@@ -86,6 +86,12 @@ variable "firewall_enabled" {
 variable "auditlog_enabled" {
   default = "false"
 }
+variable "va_minio_storage_dir" {
+  default = "/var/lib/icp/va/minio"
+}
+variable "tiller_ciphersuites" {
+  default = ""
+}
 variable "etcd_extra_args" {
   default = []
 }
@@ -94,6 +100,9 @@ variable "kube_apiserver_extra_args" {
 }
 variable "kubelet_extra_args" {
   default = []
+}
+variable "kubelet_nodename" {
+  default = "hostname"
 }
 variable icp_source_server {
   default = ""

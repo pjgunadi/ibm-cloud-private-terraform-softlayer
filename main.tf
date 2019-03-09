@@ -812,10 +812,12 @@ module "icpprovision" {
     "proxy_lb_address"             = "${var.haproxy["nodes"] == 0 ? element(split(",",var.proxy["nodes"] == 0 ? join(",",ibm_compute_vm_instance.master.*.ipv4_address) : join(",",ibm_compute_vm_instance.proxy.*.ipv4_address)),0) : element(split(",", join(",", ibm_compute_vm_instance.haproxy.*.ipv4_address)),0)}"
     "firewall_enabled"             = "${var.firewall_enabled}"
     "auditlog_enabled"             = "${var.auditlog_enabled}"
+    "tiller_ciphersuites"          = "${var.tiller_ciphersuites}"
     "etcd_extra_args"              = "${var.etcd_extra_args}"
     "kube_apiserver_extra_args"    = "${var.kube_apiserver_extra_args}"
     "kubelet_extra_args"           = "${var.kubelet_extra_args}"
-
+    "kubelet_nodename"             = "${var.kubelet_nodename}"
+    
     "management_services" = {
       "istio" = "${var.management_services["istio"]}"
       "vulnerability-advisor" = "${var.va["nodes"] != 0 ? var.management_services["vulnerability-advisor"] : "disabled"}"

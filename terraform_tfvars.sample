@@ -30,9 +30,12 @@ calico_network = {
 }
 firewall_enabled = "false"
 auditlog_enabled = "false"
+va_minio_storage_dir = "/var/lib/icp/va/minio"
+tiller_ciphersuites = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
 etcd_extra_args           = ["--cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"]
 kube_apiserver_extra_args = ["--tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384","--tls-min-version=VersionTLS12"]
 kubelet_extra_args        = ["--tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"]
+kubelet_nodename = "hostname"    #Possible values: ip, hostname, ip, fqdn, nodename
 
 master = {
     nodes       = "1"               #Number of Master Node. Minimum: 1, Maximum: 1 for ICP Community edition
@@ -116,7 +119,7 @@ gluster = {
     private_network_only = false
     hourly_billing = true
 }
-nfs = {                            #Required for shared volumes when there are multiple master nodes
+nfs = {                            #Required for shared volumes when there are multiple master nodes. This will be ignored when there is only 1 master
   nodes                = "1"
   name                 = "nfs"
   cpu_cores            = "2"
