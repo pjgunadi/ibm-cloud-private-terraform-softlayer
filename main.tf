@@ -134,7 +134,9 @@ locals {
   va_datadisk = "${var.va["kubelet_lv"] + var.va["docker_lv"] + var.va["va_lv"] + 1}"
   worker_datadisk     = "${var.worker["kubelet_lv"] + var.worker["docker_lv"] + 1}"
   nfs_datadisk     = "${var.nfs["nfs_lv"] + 1}"
-  flag_usenfs = "${var.master["nodes"] > 1 && var.nfs["nodes"] >= 1 ? 1 : 0}"
+  flag_usenfs = "${var.master["nodes"] > 1 || var.va["nodes"] > 1 ? 1 : 0}"
+  flag_ma_nfs = "${var.master["nodes"] > 1 ? 1 : 0}"
+  flag_va_nfs = "${var.va["nodes"] > 1 ? 1 : 0}"
 
   #Destroy nodes variables
   icp_boot_node_ip = "${ibm_compute_vm_instance.boot.0.ipv4_address}"
@@ -152,7 +154,7 @@ data "template_file" "createfs_master" {
     etcd_lv       = "${var.master["etcd_lv"]}"
     registry_lv   = "${var.master["registry_lv"]}"
     management_lv = "${var.master["management_lv"]}"
-    flag_usenfs   = "${local.flag_usenfs}"
+    flag_ma_nfs   = "${local.flag_ma_nfs}"
   }
 }
 
@@ -203,20 +205,39 @@ data "template_file" "createfs_nfs" {
   }
 }
 
-data "template_file" "bootstrap_shared_storage" {
-  template = "${file("${path.module}/scripts/bootstrap_shared_storage.tpl")}"
+data "template_file" "bootstrap_ma_nfs_storage" {
+  template = "${file("${path.module}/scripts/bootstrap_ma_nfs_storage.tpl")}"
 
   vars {
-    flag_usenfs = "${local.flag_usenfs}"
+    flag_ma_nfs = "${local.flag_ma_nfs}"
   }
 }
 
-data "template_file" "mount_nfs" {
-  template = "${file("${path.module}/scripts/mount_nfs.tpl")}"
+data "template_file" "mount_ma_nfs" {
+  template = "${file("${path.module}/scripts/mount_ma_nfs.tpl")}"
 
   vars {
-    nfs_ip       = "${local.flag_usenfs < 1 ? "" : element(split(",", join(",", ibm_compute_vm_instance.nfs.*.ipv4_address_private)), 0)}"
-    flag_usenfs  = "${local.flag_usenfs}"
+    nfs_ip       = "${local.flag_ma_nfs < 1 ? "" : element(split(",", join(",", ibm_compute_vm_instance.nfs.*.ipv4_address_private)), 0)}"
+    flag_ma_nfs  = "${local.flag_ma_nfs}"
+  }
+}
+
+data "template_file" "bootstrap_va_nfs_storage" {
+  template = "${file("${path.module}/scripts/bootstrap_va_nfs_storage.tpl")}"
+
+  vars {
+    mount_path   = "${var.va_minio_storage_dir}"
+    flag_va_nfs = "${local.flag_va_nfs}"
+  }
+}
+
+data "template_file" "mount_va_nfs" {
+  template = "${file("${path.module}/scripts/mount_va_nfs.tpl")}"
+
+  vars {
+    nfs_ip       = "${local.flag_va_nfs < 1 ? "" : element(split(",", join(",", ibm_compute_vm_instance.nfs.*.ipv4_address_private)), 0)}"
+    mount_path   = "${var.va_minio_storage_dir}"
+    flag_va_nfs  = "${local.flag_va_nfs}"
   }
 }
 
@@ -344,9 +365,13 @@ resource "ibm_compute_vm_instance" "nfs" {
     destination = "/tmp/createfs.sh"
   }
   provisioner "file" {
-    content     = "${data.template_file.bootstrap_shared_storage.rendered}"
-    destination = "/tmp/bootstrap_shared_storage.sh"
+    content     = "${data.template_file.bootstrap_ma_nfs_storage.rendered}"
+    destination = "/tmp/bootstrap_ma_nfs_storage.sh"
   }
+  provisioner "file" {
+    content     = "${data.template_file.bootstrap_va_nfs_storage.rendered}"
+    destination = "/tmp/bootstrap_va_nfs_storage.sh"
+  }  
   provisioner "file" {
     source      = "${path.module}/scripts/create_nfs.sh"
     destination = "/tmp/create_nfs.sh"
@@ -355,7 +380,8 @@ resource "ibm_compute_vm_instance" "nfs" {
     inline = [
       "chmod +x /tmp/createfs.sh; sudo /tmp/createfs.sh",
       "chmod +x /tmp/create_nfs.sh; /tmp/create_nfs.sh",
-      "chmod +x /tmp/bootstrap_shared_storage.sh; /tmp/bootstrap_shared_storage.sh",
+      "chmod +x /tmp/bootstrap_ma_nfs_storage.sh; /tmp/bootstrap_ma_nfs_storage.sh",
+      "chmod +x /tmp/bootstrap_va_nfs_storage.sh; /tmp/bootstrap_va_nfs_storage.sh",
     ]
   }
 }
@@ -424,8 +450,8 @@ resource "ibm_compute_vm_instance" "master" {
     destination = "/tmp/createfs.sh"
   }
   provisioner "file" {
-    content     = "${data.template_file.mount_nfs.rendered}"
-    destination = "/tmp/mount_nfs.sh"
+    content     = "${data.template_file.mount_ma_nfs.rendered}"
+    destination = "/tmp/mount_ma_nfs.sh"
   }
   provisioner "file" {
     source      = "${path.module}/scripts/create_nfs.sh"
@@ -435,7 +461,7 @@ resource "ibm_compute_vm_instance" "master" {
     inline = [
       "chmod +x /tmp/createfs.sh; sudo /tmp/createfs.sh",
       "chmod +x /tmp/create_nfs.sh; /tmp/create_nfs.sh",
-      "chmod +x /tmp/mount_nfs.sh; /tmp/mount_nfs.sh",      
+      "chmod +x /tmp/mount_ma_nfs.sh; /tmp/mount_ma_nfs.sh",      
     ]
   }
 }
@@ -585,9 +611,19 @@ resource "ibm_compute_vm_instance" "va" {
     content     = "${data.template_file.createfs_va.rendered}"
     destination = "/tmp/createfs.sh"
   }
+  provisioner "file" {
+    source      = "${path.module}/scripts/create_nfs.sh"
+    destination = "/tmp/create_nfs.sh"
+  }
+  provisioner "file" {
+    content     = "${data.template_file.mount_va_nfs.rendered}"
+    destination = "/tmp/mount_va_nfs.sh"
+  }
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/createfs.sh; sudo /tmp/createfs.sh",
+      "chmod +x /tmp/create_nfs.sh; /tmp/create_nfs.sh",
+      "chmod +x /tmp/mount_va_nfs.sh; /tmp/mount_va_nfs.sh",      
     ]
   }
 
@@ -733,15 +769,23 @@ resource "null_resource" "copy_delete_gluster" {
 }
 
 #Update NFS Server
-data "template_file" "update_nfs_server" {
-  template = "${file("${path.module}/scripts/update_nfs_server.tpl")}"
+data "template_file" "update_ma_nfs_server" {
+  template = "${file("${path.module}/scripts/update_ma_nfs_server.tpl")}"
 
   vars {
     master_ips  = "${join(" ", ibm_compute_vm_instance.master.*.ipv4_address_private)}"
-    flag_usenfs = "${local.flag_usenfs}"
+    flag_ma_nfs = "${local.flag_ma_nfs}"
   }
 }
+data "template_file" "update_va_nfs_server" {
+  template = "${file("${path.module}/scripts/update_va_nfs_server.tpl")}"
 
+  vars {
+    va_ips  = "${join(" ", ibm_compute_vm_instance.va.*.ipv4_address_private)}"
+    mount_path  = "${var.va_minio_storage_dir}"
+    flag_va_nfs = "${local.flag_va_nfs}"
+  }
+}
 locals {
   nfs_ip = "${local.flag_usenfs < 1 ? "" : element(split(",", join(",", ibm_compute_vm_instance.nfs.*.ipv4_address)),0)}"
 }
@@ -754,13 +798,18 @@ resource "null_resource" "update_nfs_server" {
   }
 
   provisioner "file" {
-    content     = "${data.template_file.update_nfs_server.rendered}"
-    destination = "/tmp/update_nfs_server.sh"
+    content     = "${data.template_file.update_ma_nfs_server.rendered}"
+    destination = "/tmp/update_ma_nfs_server.sh"
+  }
+  provisioner "file" {
+    content     = "${data.template_file.update_va_nfs_server.rendered}"
+    destination = "/tmp/update_va_nfs_server.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/update_nfs_server.sh; /tmp/update_nfs_server.sh",
+      "chmod +x /tmp/update_ma_nfs_server.sh; /tmp/update_ma_nfs_server.sh",
+      "chmod +x /tmp/update_va_nfs_server.sh; /tmp/update_va_nfs_server.sh",
     ]
   }
 }

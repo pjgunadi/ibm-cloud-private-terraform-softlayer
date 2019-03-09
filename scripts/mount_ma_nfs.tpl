@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ ${flag_usenfs} -eq 1 ]; then
+if [ ${flag_ma_nfs} -eq 1 ]; then
   sudo mkdir -p /var/lib/registry
   sudo mkdir -p /var/lib/icp/audit
   sudo mkdir -p /var/log/audit

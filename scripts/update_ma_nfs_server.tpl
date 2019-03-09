@@ -15,21 +15,19 @@ if [ -f /etc/netgroup ]; then
 fi
 echo "$MASTER_GROUP" | sudo tee -a /etc/netgroup
 
-if [ ${flag_usenfs} -eq 1 ]; then
-    # Start NFS server
-    #sudo systemctl enable nfs-server
-    #sudo systemctl start nfs-server
-
-    sudo mkdir -p /export/icpshared/var/lib/registry
-    sudo mkdir -p /export/icpshared/var/lib/icp/audit
-    sudo mkdir -p /export/icpshared/var/log/audit
+if [ ${flag_ma_nfs} -eq 1 ]; then
+    [ -d /export/icpshared/var/lib/registry ] || sudo mkdir -p /export/icpshared/var/lib/registry
+    [ -d /export/icpshared/var/lib/icp/audit ] || sudo mkdir -p /export/icpshared/var/lib/icp/audit
+    [ -d /export/icpshared/var/log/audit ] || sudo mkdir -p /export/icpshared/var/log/audit
 
     NFSCLIENT=""
     for node in $MASTER_NODES; do
         NFSCLIENT=$(echo $NFSCLIENT $node$SHARE_ATTRIBUTES)
     done
 
-    sed -i "/^\/export\/icpshared/d" /etc/exports
+    sed -i "/^\/export\/icpshared\/var\/lib\/registry/d" /etc/exports
+    sed -i "/^\/export\/icpshared\/var\/lib\/icp\/audit/d" /etc/exports
+    sed -i "/^\/export\/icpshared\/var\/log\/audit/d" /etc/exports
 
     cat <<EOF | sudo tee -a /etc/exports
 /export/icpshared/var/lib/registry $NFSCLIENT

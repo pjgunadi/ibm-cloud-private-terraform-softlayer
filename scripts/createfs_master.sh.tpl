@@ -35,7 +35,7 @@ cat <<EOL | tee -a /etc/fstab
 EOL
 
 #Mount Registry for Single Master
-if [ ${flag_usenfs} -eq 0 ]; then
+if [ ${flag_ma_nfs} -eq 0 ]; then
   lvcreate -L ${registry_lv}G -n registry-lv icp-vg
   mkfs.ext4 /dev/icp-vg/registry-lv
   cat <<EOR | tee -a /etc/fstab
