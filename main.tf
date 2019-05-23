@@ -139,7 +139,8 @@ locals {
   flag_va_nfs = "${var.va["nodes"] > 1 ? 1 : 0}"
 
   #Destroy nodes variables
-  icp_boot_node_ip = "${ibm_compute_vm_instance.boot.0.ipv4_address}"
+  # icp_boot_node_ip = "${ibm_compute_vm_instance.boot.0.ipv4_address}"
+  icp_boot_node_ip = "${var.boot["nodes"] > 0 ? element(split(",", join(",", ibm_compute_vm_instance.boot.*.ipv4_address)), 0) : ibm_compute_vm_instance.master.0.ipv4_address}"
   heketi_ip        = "${var.gluster["nodes"] > 0 ? element(split(",", join(",", ibm_compute_vm_instance.gluster.*.ipv4_address)), 0) : ""}"
   heketi_svc_ip    = "${var.gluster["nodes"] > 0 ? element(split(",", join(",", ibm_compute_vm_instance.gluster.*.ipv4_address_private)), 0) : ""}"
   ssh_options      = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
@@ -277,6 +278,11 @@ data "template_file" "haproxy" {
   }
 }
 
+#VLAN
+data "ibm_network_vlan" "custom_vlan" {
+  name = "${var.private_vlan}"
+}
+
 #Create HAProxy Node
 resource "ibm_compute_vm_instance" "haproxy" {
   lifecycle {
@@ -296,7 +302,8 @@ resource "ibm_compute_vm_instance" "haproxy" {
   hourly_billing       = "${var.haproxy["hourly_billing"]}"
   private_network_only = "${var.haproxy["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
+  private_vlan_id      = "${data.ibm_network_vlan.custom_vlan.id}"
+  # private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}","${ibm_security_group.public_inbound_haproxy.id}","${ibm_security_group.public_inbound_proxy.id}"]
@@ -350,7 +357,8 @@ resource "ibm_compute_vm_instance" "nfs" {
   hourly_billing       = "${var.nfs["hourly_billing"]}"
   private_network_only = "${var.nfs["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
+  private_vlan_id      = "${data.ibm_network_vlan.custom_vlan.id}"
+  # private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}","${ibm_security_group.public_inbound_nfs.id}","${ibm_security_group.public_inbound_proxy.id}"]
@@ -405,6 +413,7 @@ resource "ibm_compute_vm_instance" "boot" {
   hourly_billing       = "${var.boot["hourly_billing"]}"
   private_network_only = "${var.boot["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
+  private_vlan_id      = "${data.ibm_network_vlan.custom_vlan.id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}","${ibm_security_group.public_inbound_boot.id}","${ibm_security_group.public_inbound_proxy.id}"]
@@ -435,7 +444,8 @@ resource "ibm_compute_vm_instance" "master" {
   hourly_billing       = "${var.master["hourly_billing"]}"
   private_network_only = "${var.master["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
+  private_vlan_id      = "${data.ibm_network_vlan.custom_vlan.id}"
+  # private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}","${ibm_security_group.public_inbound_master.id}","${ibm_security_group.public_inbound_proxy.id}"]
@@ -485,7 +495,8 @@ resource "ibm_compute_vm_instance" "proxy" {
   hourly_billing       = "${var.proxy["hourly_billing"]}"
   private_network_only = "${var.proxy["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
+  private_vlan_id      = "${data.ibm_network_vlan.custom_vlan.id}"
+  # private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}","${ibm_security_group.public_inbound_proxy.id}"]
@@ -541,7 +552,8 @@ resource "ibm_compute_vm_instance" "management" {
   hourly_billing       = "${var.management["hourly_billing"]}"
   private_network_only = "${var.management["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
+  private_vlan_id      = "${data.ibm_network_vlan.custom_vlan.id}"
+  # private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}"]
@@ -597,7 +609,8 @@ resource "ibm_compute_vm_instance" "va" {
   hourly_billing       = "${var.va["hourly_billing"]}"
   private_network_only = "${var.va["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
+  private_vlan_id      = "${data.ibm_network_vlan.custom_vlan.id}"
+  # private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}"]
@@ -664,7 +677,8 @@ resource "ibm_compute_vm_instance" "worker" {
   hourly_billing       = "${var.worker["hourly_billing"]}"
   private_network_only = "${var.worker["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
+  private_vlan_id      = "${data.ibm_network_vlan.custom_vlan.id}"
+  # private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}"]
@@ -717,7 +731,8 @@ resource "ibm_compute_vm_instance" "gluster" {
   hourly_billing       = "${var.gluster["hourly_billing"]}"
   private_network_only = "${var.gluster["private_network_only"]}"
   ssh_key_ids          = ["${ibm_compute_ssh_key.ibm_public_key.id}"]
-  private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
+  private_vlan_id      = "${data.ibm_network_vlan.custom_vlan.id}"
+  # private_vlan_id      = "${ibm_compute_vm_instance.boot.0.private_vlan_id}"
 
   #private_security_group_ids = ["${ibm_security_group.private_outbound.id}","${ibm_security_group.private_inbound.id}"]
   #public_security_group_ids = ["${ibm_security_group.public_outbound.id}","${ibm_security_group.public_inbound_ssh.id}"]

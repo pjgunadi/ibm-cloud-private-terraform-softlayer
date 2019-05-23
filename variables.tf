@@ -154,6 +154,10 @@ variable "heketi_admin_pwd" {
   default = "none"
 }
 
+variable "private_vlan" {
+  default = ""
+}
+
 variable "master" {
   type = "map"
 

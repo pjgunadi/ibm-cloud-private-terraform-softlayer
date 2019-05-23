@@ -14,6 +14,19 @@ This terraform template perform the following tasks:
 3. On the IBM CLoud Infrastructure dashboard, find **Account Snapshot** section and click [Users](https://control.bluemix.net/account/users#clearAll=true&status=ALL)
 4. On user record row, click **Actions** dropdown to Create/Show API Key
 
+### Create VLAN in IBM Cloud Infrastructure
+Create your own VLAN with sufficient subnet IP Addresses
+1. Login to IBM Cloud
+2. Navigate to `Infrastructure`
+3. From navigation menu, select *Network* > *IP Managements* > *VLANs*
+4. Click **Order VLAN +**
+5. Choose the following options:
+   - Network: _Private_
+   - Location: _Datacenter_
+   - Datacenter: *Choose your target datacenter*
+   - VLAN Name: *Type your target VLAN name for ICP deployment*
+6. Verify the agreement and create your VLAN
+
 ## Deployment step from Terraform CLI
 1. Clone this repository: `git clone https://github.com/pjgunadi/ibm-cloud-private-terraform-softlayer.git`
 2. [Download terraform](https://www.terraform.io/) if you don't have one
